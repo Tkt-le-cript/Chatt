@@ -107,13 +107,14 @@
       margin-bottom: 6px;
       font-weight: 600;
     }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px 12px;
       margin-bottom: 15px;
       border-radius: 8px;
       border: none;
       font-size: 16px;
+      resize: vertical;
     }
     button.save-profile {
       background-color: #4caf50;
@@ -141,6 +142,7 @@
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #fff;
+      color: #000;
     }
     #friendList li {
       padding: 10px 15px;
@@ -222,7 +224,7 @@
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.2.0</div>
+  <div id="version-tag">Version 0.2.1</div>
   <nav>
     <div class="logo">ChattFun</div>
     <div>
@@ -258,7 +260,7 @@
         </select>
 
         <label for="bio">À propos de toi</label>
-        <textarea id="bio" rows="4" placeholder="Parle-nous un peu de toi..." style="width:100%; border-radius:8px; padding:10px; font-size:16px;"></textarea>
+        <textarea id="bio" rows="4" placeholder="Parle-nous un peu de toi..."></textarea>
 
         <button type="submit" class="save-profile">Sauvegarder</button>
       </form>
@@ -278,19 +280,23 @@
   </main>
 
   <script>
-    const version = '0.2.0';
+    const version = '0.2.1';
     document.getElementById('version-tag').innerText = `Version ${version}`;
 
-    // Navigation boutons
+    // Récupération session utilisateur (pseudo stocké localStorage à la connexion)
+    const sessionUser = localStorage.getItem('sessionUser');
+    if (!sessionUser) {
+      alert("Tu n'es pas connecté !");
+      window.location.href = 'index.html';
+    }
+
+    // Navigation boutons (pas besoin ici ils restent en place)
     const btnProfile = document.getElementById('btnProfile');
     const btnLogout = document.getElementById('btnLogout');
 
     const tabs = document.querySelectorAll('.tabBtn');
     const profileTab = document.getElementById('profileTab');
     const friendsTab = document.getElementById('friendsTab');
-
-    let sessionUser = localStorage.getItem('sessionUser');
-    if (!sessionUser) window.location.href = 'index.html';
 
     // Gestion onglets
     tabs.forEach(btn => {
@@ -308,7 +314,7 @@
       });
     });
 
-    // Profil - Chargement + sauvegarde
+    // Profil
     const profileForm = document.getElementById('profileForm');
     const ageInput = document.getElementById('age');
     const heightInput = document.getElementById('height');
@@ -375,4 +381,32 @@
 
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Supprimer';
-        remove
+        removeBtn.addEventListener('click', () => {
+          removeFriend(friend);
+        });
+        li.appendChild(removeBtn);
+
+        friendList.appendChild(li);
+      });
+    }
+
+    function removeFriend(friendName) {
+      const allFriends = JSON.parse(localStorage.getItem('friends') || '{}');
+      let myFriends = allFriends[sessionUser] || [];
+      myFriends = myFriends.filter(f => f !== friendName);
+      allFriends[sessionUser] = myFriends;
+      localStorage.setItem('friends', JSON.stringify(allFriends));
+      friendMsg.style.color = '#388e3c';
+      friendMsg.textContent = `Ami "${friendName}" supprimé.`;
+      renderFriends();
+    }
+
+    addFriendForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const newFriend = friendNameInput.value.trim();
+      if (!newFriend) {
+        friendMsg.style.color = '#d32f2f';
+        friendMsg.textContent = "Entre un pseudo valide.";
+        return;
+      }
+      if
