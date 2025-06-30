@@ -24,12 +24,22 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // 🔁 Action du bouton
-    document.getElementById('btnLogin').onclick = () => {
-      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-        .then(() => window.location.href = "app.html")
-        .catch(e => alert("Erreur : " + e.message));
-    };
+    // 🔁 Action du bouton → redirection (plus fiable que popup)
+    document.getElementById('btnLogin').addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithRedirect(provider);
+    });
+
+    // 🔁 Après redirection, récupérer l’utilisateur connecté
+    auth.getRedirectResult()
+      .then(result => {
+        if (result.user) {
+          window.location.href = "app.html";
+        }
+      })
+      .catch(error => {
+        alert("Erreur : " + error.message);
+      });
   </script>
 </body>
 </html>
