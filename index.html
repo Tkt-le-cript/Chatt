@@ -54,7 +54,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
 <body>
-  <div id="version-tag">Version 0.0.3</div>
+  <div id="version-tag">Version 0.0.4</div>
 
   <h1>🔐 Connexion à <b>ChattFun</b></h1>
   <input type="email" id="email" placeholder="Email" autocomplete="username" />
@@ -75,6 +75,8 @@
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
 
+      console.log("Firebase initialisé :", firebase);
+
       const btn = document.getElementById('loginBtn');
       if (!btn) {
         alert("Bouton non trouvé dans le DOM !");
@@ -87,6 +89,9 @@
 
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value.trim();
+
+        console.log("Email:", email);
+        console.log("Password:", password ? "********" : "(vide)");
 
         if (!email || !password) {
           alert("Remplis tous les champs");
@@ -104,30 +109,40 @@
           return;
         }
 
+        signIn(email, password, auth);
+      });
+
+      function signIn(email, password, auth) {
+        console.log("Début signIn");
         auth.signInWithEmailAndPassword(email, password)
           .then(() => {
             alert("Connexion réussie !");
             console.log("Connexion réussie");
-            // window.location.href = "app.html"; // Décommenter quand prêt
+            // window.location.href = "app.html";
           })
           .catch(error => {
             console.log("Erreur lors de la connexion :", error);
             if (error.code === 'auth/user-not-found') {
-              auth.createUserWithEmailAndPassword(email, password)
-                .then(() => {
-                  alert("Inscription réussie !");
-                  console.log("Inscription réussie");
-                  // window.location.href = "app.html"; // Décommenter quand prêt
-                })
-                .catch(e => {
-                  alert("Erreur inscription : " + e.message);
-                  console.error("Erreur inscription :", e);
-                });
+              createUser(email, password, auth);
             } else {
               alert("Erreur connexion : " + error.message + " (code: " + error.code + ")");
             }
           });
-      });
+      }
+
+      function createUser(email, password, auth) {
+        console.log("Création utilisateur");
+        auth.createUserWithEmailAndPassword(email, password)
+          .then(() => {
+            alert("Inscription réussie !");
+            console.log("Inscription réussie");
+            // window.location.href = "app.html";
+          })
+          .catch(e => {
+            alert("Erreur inscription : " + e.message);
+            console.error("Erreur inscription :", e);
+          });
+      }
     });
   </script>
 </body>
