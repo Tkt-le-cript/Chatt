@@ -1,92 +1,63 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChattFun</title>
+  <meta charset="UTF-8">
+  <title>Bienvenue sur ChattFun</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
       text-align: center;
       padding: 40px;
-      background-color: #f4f4f4;
     }
-    #login, #app, #usernameForm {
-      display: none;
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+    }
+    button {
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 12px 20px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Bienvenue sur ChattFun</h1>
-  <div id="login">
-    <button onclick="signIn()">Se connecter avec Google</button>
-  </div>
+  <h1>Bienvenue sur <b>ChattFun</b> 🎉</h1>
+  <p>Connecte-toi avec Google pour choisir un pseudo,<br>
+     ajouter des amis et chatter en temps réel !</p>
 
-  <div id="usernameForm">
-    <p>Choisis ton pseudo :</p>
-    <input type="text" id="usernameInput" placeholder="Ex: MaxGaming" />
-    <button onclick="saveUsername()">Continuer</button>
-  </div>
-
-  <div id="app">
-    <p>Connecté en tant que <span id="userPseudo"></span></p>
-    <!-- Prochaines étapes : liste d’amis + chat ici -->
-  </div>
+  <button onclick="signIn()">Se connecter avec Google</button>
 
   <script>
-    // ✅ CONFIGURATION FIREBASE CHATTFUN
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
-      projectId: "chattfun-b892f",
-      storageBucket: "chattfun-b892f.appspot.com",
-      messagingSenderId: "7415386521",
-      appId: "1:7415386521:web:xxxxxxxxxxxxxx" // <-- Tu peux compléter cet appId si tu veux
+      projectId: "chattfun-b892f"
     };
 
-    // Initialisation Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
 
-    // Connexion Google
     function signIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(error => {
-        alert("Erreur de connexion : " + error.message);
-      });
-    }
-
-    // Détection de connexion
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        const doc = await db.collection("users").doc(user.uid).get();
-        if (doc.exists) {
-          document.getElementById("userPseudo").innerText = doc.data().pseudo;
-          document.getElementById("app").style.display = "block";
-        } else {
-          document.getElementById("usernameForm").style.display = "block";
-        }
-      } else {
-        document.getElementById("login").style.display = "block";
-      }
-    });
-
-    // Enregistrement du pseudo
-    async function saveUsername() {
-      const pseudo = document.getElementById("usernameInput").value.trim();
-      const user = auth.currentUser;
-      if (pseudo === "") return alert("Entre un pseudo.");
-      await db.collection("users").doc(user.uid).set({
-        uid: user.uid,
-        email: user.email,
-        pseudo: pseudo
-      });
-      location.reload();
+      auth.signInWithPopup(provider)
+        .then(() => {
+          window.location.href = "app.html";
+        })
+        .catch(error => {
+          alert("Erreur : " + error.message);
+        });
     }
   </script>
 
