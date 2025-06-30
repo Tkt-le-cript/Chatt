@@ -7,6 +7,7 @@
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
   <style>
@@ -36,9 +37,9 @@
 </head>
 <body>
   <h1>🔐 Connexion à <b>ChattFun</b></h1>
-  <input type="text" id="username" placeholder="Nom d'utilisateur">
+  <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Mot de passe">
-  <button onclick="login()">Se connecter</button>
+  <button onclick="login()">Se connecter / S'inscrire</button>
 
   <script>
     // 🔧 Configuration Firebase
@@ -48,34 +49,32 @@
       projectId: "chattfun-b892f"
     };
     firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
     function login() {
-      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      if (!username || !password) return alert("Remplis tous les champs");
+      if (!email || !password) {
+        alert("Remplis tous les champs");
+        return;
+      }
 
-      const userRef = db.collection("users").doc(username);
-      userRef.get().then(doc => {
-        if (doc.exists) {
-          // 🔐 Vérification du mot de passe
-          if (doc.data().password === password) {
-            localStorage.setItem("username", username);
-            window.location.href = "app.html";
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "app.html";
+        })
+        .catch((error) => {
+          if (error.code === 'auth/user-not-found') {
+            auth.createUserWithEmailAndPassword(email, password)
+              .then(() => window.location.href = "app.html")
+              .catch(e => alert("Erreur inscription : " + e.message));
           } else {
-            alert("Mot de passe incorrect");
+            alert("Erreur connexion : " + error.message);
           }
-        } else {
-          // 👤 Nouveau compte
-          userRef.set({ password: password, friends: [] }).then(() => {
-            localStorage.setItem("username", username);
-            window.location.href = "app.html";
-          });
-        }
-      }).catch(e => {
-        alert("Erreur de connexion : " + e.message);
-      });
+        });
     }
   </script>
 </body>
