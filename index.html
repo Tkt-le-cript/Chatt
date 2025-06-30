@@ -2,37 +2,30 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <title>ChattFun - Connexion Netlify Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ChattFun - Connexion</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 40px 10px;
-      background: #f0f0f0;
+      padding: 40px;
     }
-    input {
+    input, button {
       padding: 12px;
-      width: 90%;
-      max-width: 400px;
       margin: 10px auto;
       display: block;
+      width: 90%;
+      max-width: 400px;
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
     button {
-      padding: 14px 0;
-      width: 90%;
-      max-width: 400px;
       background: #4CAF50;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 18px;
       cursor: pointer;
-      margin: 20px auto;
-      display: block;
+      border-radius: 8px;
     }
     #version-tag {
       position: fixed;
@@ -48,101 +41,52 @@
       z-index: 9999;
     }
   </style>
-
-  <!-- Firebase SDK classique -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
 <body>
-  <div id="version-tag">Version 0.0.4</div>
+  <div id="version-tag">Version 0.0.7</div>
 
   <h1>🔐 Connexion à <b>ChattFun</b></h1>
   <input type="email" id="email" placeholder="Email" autocomplete="username" />
   <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" />
   <button id="loginBtn">Se connecter / S'inscrire</button>
 
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      console.log("DOM chargé");
-      alert("DOM chargé");
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
-        authDomain: "chattfun-b892f.firebaseapp.com",
-        projectId: "chattfun-b892f"
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-
-      console.log("Firebase initialisé :", firebase);
-
-      const btn = document.getElementById('loginBtn');
-      if (!btn) {
-        alert("Bouton non trouvé dans le DOM !");
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!netlifyIdentity) {
+        alert("Netlify Identity non chargé !");
         return;
       }
+      netlifyIdentity.init();
 
-      btn.addEventListener('click', () => {
-        console.log("Bouton cliqué");
-        alert("Bouton cliqué");
-
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        console.log("Email:", email);
-        console.log("Password:", password ? "********" : "(vide)");
-
         if (!email || !password) {
           alert("Remplis tous les champs");
-          console.log("Champs vides");
-          return;
-        }
-        if (!/\S+@\S+\.\S+/.test(email)) {
-          alert("Entre un email valide");
-          console.log("Email invalide");
-          return;
-        }
-        if (password.length < 6) {
-          alert("Le mot de passe doit contenir au moins 6 caractères");
-          console.log("Mot de passe trop court");
           return;
         }
 
-        signIn(email, password, auth);
-      });
-
-      function signIn(email, password, auth) {
-        console.log("Début signIn");
-        auth.signInWithEmailAndPassword(email, password)
-          .then(() => {
-            alert("Connexion réussie !");
-            console.log("Connexion réussie");
-            // window.location.href = "app.html";
-          })
-          .catch(error => {
-            console.log("Erreur lors de la connexion :", error);
-            if (error.code === 'auth/user-not-found') {
-              createUser(email, password, auth);
-            } else {
-              alert("Erreur connexion : " + error.message + " (code: " + error.code + ")");
-            }
-          });
-      }
-
-      function createUser(email, password, auth) {
-        console.log("Création utilisateur");
-        auth.createUserWithEmailAndPassword(email, password)
-          .then(() => {
+        try {
+          let user = netlifyIdentity.currentUser();
+          if (!user) {
+            user = await netlifyIdentity.signup(email, password);
             alert("Inscription réussie !");
-            console.log("Inscription réussie");
-            // window.location.href = "app.html";
-          })
-          .catch(e => {
-            alert("Erreur inscription : " + e.message);
-            console.error("Erreur inscription :", e);
-          });
-      }
+          } else {
+            alert("Utilisateur déjà connecté");
+          }
+          // Connexion
+          await netlifyIdentity.login(email, password);
+          alert("Connexion réussie !");
+          // Rediriger vers app.html ou autre
+          // window.location.href = "app.html";
+        } catch (err) {
+          alert("Erreur : " + err.message);
+          console.error(err);
+        }
+      });
     });
   </script>
 </body>
