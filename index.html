@@ -2,26 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>ChattFun - Connexion locale</title>
+  <title>ChattFun - Connexion / Inscription</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family:Arial,sans-serif; text-align:center; padding:40px; }
-    input, button { padding:12px; width:90%; max-width:400px; font-size:16px; margin:10px auto; display:block; }
-    button { background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; }
-    #version-tag { position:fixed; top:5px; left:5px; background:rgba(0,0,0,0.6); color:white; padding:4px 8px; font-family:monospace; font-size:12px; border-radius:4px; z-index:9999; }
+    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
+    button, input { padding: 12px; width: 90%; max-width: 400px; font-size: 16px; margin: 10px auto; display: block; }
+    button { background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    #version-tag { position: fixed; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; font-family: monospace; font-size: 12px; border-radius: 4px; z-index: 9999; }
+    #form-container { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.5</div>
-  <h1>Connexion / Inscription</h1>
-  <input type="text" id="pseudo" placeholder="Ton pseudo" />
-  <input type="password" id="passwd" placeholder="Mot de passe" />
-  <button id="btn">Valider</button>
-  <p id="message"></p>
+  <div id="version-tag">Version 0.1.6</div>
+  <h1>Bienvenue sur ChattFun</h1>
+
+  <button id="btn-login-choice">Connexion</button>
+  <button id="btn-register-choice">Inscription</button>
+
+  <div id="form-container" style="display:none;">
+    <input type="text" id="pseudo" placeholder="Ton pseudo" />
+    <input type="password" id="passwd" placeholder="Mot de passe" />
+    <button id="btn-submit"></button>
+    <p id="message"></p>
+  </div>
 
   <script>
-    const btn = document.getElementById('btn');
+    const btnLoginChoice = document.getElementById('btn-login-choice');
+    const btnRegisterChoice = document.getElementById('btn-register-choice');
+    const formContainer = document.getElementById('form-container');
+    const btnSubmit = document.getElementById('btn-submit');
     const msg = document.getElementById('message');
+    const pseudoInput = document.getElementById('pseudo');
+    const passwdInput = document.getElementById('passwd');
+
+    let mode = null; // "login" ou "register"
+
+    btnLoginChoice.onclick = () => {
+      mode = 'login';
+      formContainer.style.display = 'block';
+      btnSubmit.textContent = 'Se connecter';
+      msg.textContent = '';
+      pseudoInput.value = '';
+      passwdInput.value = '';
+    };
+
+    btnRegisterChoice.onclick = () => {
+      mode = 'register';
+      formContainer.style.display = 'block';
+      btnSubmit.textContent = "S'inscrire";
+      msg.textContent = '';
+      pseudoInput.value = '';
+      passwdInput.value = '';
+    };
 
     function hash(str) {
       let h = 0;
@@ -29,30 +61,46 @@
       return h.toString();
     }
 
-    btn.addEventListener('click', () => {
-      const pseudo = document.getElementById('pseudo').value.trim();
-      const passwd = document.getElementById('passwd').value;
+    btnSubmit.onclick = () => {
+      const pseudo = pseudoInput.value.trim();
+      const passwd = passwdInput.value;
 
       if (!pseudo || passwd.length < 3) {
-        msg.innerText = "Entre un pseudo et un mdp ≥ 3 caractères.";
+        msg.textContent = 'Entre un pseudo et un mot de passe (≥ 3 caractères).';
         return;
       }
 
       const users = JSON.parse(localStorage.getItem('users') || '{}');
       const hashed = hash(passwd);
 
-      if (users[pseudo]) {
-        if (users[pseudo] === hashed) {
-          msg.innerText = `Connexion réussie : bienvenue ${pseudo} 👍`;
-        } else {
-          msg.innerText = "Mot de passe incorrect.";
+      if (mode === 'register') {
+        if (users[pseudo]) {
+          msg.textContent = "Ce pseudo est déjà pris.";
+          return;
         }
-      } else {
         users[pseudo] = hashed;
         localStorage.setItem('users', JSON.stringify(users));
-        msg.innerText = `Inscription réussie : bienvenue ${pseudo} 🎉`;
+        msg.textContent = `Inscription réussie : bienvenue ${pseudo} 🎉`;
+        setTimeout(() => {
+          localStorage.setItem('sessionUser', pseudo);
+          window.location.href = 'app.html';
+        }, 1000);
+      } else if (mode === 'login') {
+        if (!users[pseudo]) {
+          msg.textContent = "Ce pseudo n'existe pas.";
+          return;
+        }
+        if (users[pseudo] !== hashed) {
+          msg.textContent = "Mot de passe incorrect.";
+          return;
+        }
+        msg.textContent = `Connexion réussie : bienvenue ${pseudo} 👍`;
+        setTimeout(() => {
+          localStorage.setItem('sessionUser', pseudo);
+          window.location.href = 'app.html';
+        }, 1000);
       }
-    });
+    };
   </script>
 </body>
 </html>
