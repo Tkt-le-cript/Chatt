@@ -1,43 +1,93 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mon site mobile</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChattFun</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
       text-align: center;
-      padding: 50px;
+      padding: 40px;
+      background-color: #f4f4f4;
     }
-
-    h1 {
-      color: #2c3e50;
-    }
-
-    p {
-      font-size: 18px;
-      color: #555;
+    #login, #app, #usernameForm {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>Bienvenue sur mon site !</h1>
-  <p>Créé depuis mon téléphone ✨</p>
 
-  <!-- CHAT TAWK.TO -->
-  <script type="text/javascript">
-  var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-  (function(){
-    var s1 = document.createElement("script"),
-        s0 = document.getElementsByTagName("script")[0];
-    s1.async = true;
-    s1.src = 'https://embed.tawk.to/68627c1a3819e5190c8b8c25/1iv0b9i6i';
-    s1.charset = 'UTF-8';
-    s1.setAttribute('crossorigin', '*');
-    s0.parentNode.insertBefore(s1, s0);
-  })();
+  <h1>Bienvenue sur ChattFun</h1>
+  <div id="login">
+    <button onclick="signIn()">Se connecter avec Google</button>
+  </div>
+
+  <div id="usernameForm">
+    <p>Choisis ton pseudo :</p>
+    <input type="text" id="usernameInput" placeholder="Ex: MaxGaming" />
+    <button onclick="saveUsername()">Continuer</button>
+  </div>
+
+  <div id="app">
+    <p>Connecté en tant que <span id="userPseudo"></span></p>
+    <!-- Prochaines étapes : liste d’amis + chat ici -->
+  </div>
+
+  <script>
+    // ✅ CONFIGURATION FIREBASE CHATTFUN
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
+      authDomain: "chattfun-b892f.firebaseapp.com",
+      projectId: "chattfun-b892f",
+      storageBucket: "chattfun-b892f.appspot.com",
+      messagingSenderId: "7415386521",
+      appId: "1:7415386521:web:xxxxxxxxxxxxxx" // <-- Tu peux compléter cet appId si tu veux
+    };
+
+    // Initialisation Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Connexion Google
+    function signIn() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(error => {
+        alert("Erreur de connexion : " + error.message);
+      });
+    }
+
+    // Détection de connexion
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const doc = await db.collection("users").doc(user.uid).get();
+        if (doc.exists) {
+          document.getElementById("userPseudo").innerText = doc.data().pseudo;
+          document.getElementById("app").style.display = "block";
+        } else {
+          document.getElementById("usernameForm").style.display = "block";
+        }
+      } else {
+        document.getElementById("login").style.display = "block";
+      }
+    });
+
+    // Enregistrement du pseudo
+    async function saveUsername() {
+      const pseudo = document.getElementById("usernameInput").value.trim();
+      const user = auth.currentUser;
+      if (pseudo === "") return alert("Entre un pseudo.");
+      await db.collection("users").doc(user.uid).set({
+        uid: user.uid,
+        email: user.email,
+        pseudo: pseudo
+      });
+      location.reload();
+    }
   </script>
 
 </body>
