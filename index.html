@@ -5,181 +5,149 @@
   <title>ChattFun - Connexion / Inscription</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      padding: 40px 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    h1 {
-      font-weight: 700;
-      margin-bottom: 30px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    button, input {
-      padding: 14px;
-      width: 90%;
-      max-width: 350px;
-      font-size: 17px;
-      margin: 12px auto;
-      border-radius: 10px;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      outline: none;
-      transition: all 0.3s ease;
-      display: block;
-    }
-    button {
-      background-color: #4caf50;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:hover {
-      background-color: #45a049;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    input::placeholder {
-      color: #bbb;
-      font-weight: 500;
-    }
-    #form-container {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.25);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      max-width: 400px;
-      width: 100%;
-    }
-    #version-tag {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      background: rgba(0,0,0,0.5);
-      color: #eee;
-      padding: 5px 12px;
-      font-family: monospace;
-      font-size: 13px;
-      border-radius: 6px;
-      user-select: none;
-      z-index: 9999;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.3);
-    }
-    #message {
-      color: #ffb86c;
-      font-weight: 600;
-      min-height: 24px;
-      margin-top: 8px;
-      user-select: none;
-    }
-    #btn-login-choice, #btn-register-choice {
-      background-color: #7269ef;
-      margin-bottom: 15px;
-      font-weight: 700;
-    }
-    #btn-login-choice:hover, #btn-register-choice:hover {
-      background-color: #5b4ad9;
-      box-shadow: 0 4px 14px rgba(88, 71, 214, 0.7);
-    }
+    body { font-family: Arial, sans-serif; background: #667eea; color: #fff; text-align:center; padding: 50px; }
+    input, button { padding: 10px; margin: 5px; border-radius: 6px; border: none; font-size: 16px; }
+    button { cursor: pointer; background: #4caf50; color: white; }
+    button:hover { background: #45a049; }
+    .error { color: #ff6666; }
+    .success { color: #aaffaa; }
+    form { margin-bottom: 20px; }
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.7</div>
-  <h1>Bienvenue sur <span style="color:#ffcc00;">ChattFun</span></h1>
 
-  <button id="btn-login-choice">Connexion</button>
-  <button id="btn-register-choice">Inscription</button>
+<h1>ChattFun - Connexion / Inscription</h1>
 
-  <div id="form-container" style="display:none;">
-    <input type="text" id="pseudo" placeholder="Ton pseudo" autocomplete="off" />
-    <input type="password" id="passwd" placeholder="Mot de passe" autocomplete="new-password" />
-    <button id="btn-submit"></button>
-    <p id="message"></p>
-  </div>
+<div id="msg" style="height:20px;"></div>
 
-  <script>
-    const btnLoginChoice = document.getElementById('btn-login-choice');
-    const btnRegisterChoice = document.getElementById('btn-register-choice');
-    const formContainer = document.getElementById('form-container');
-    const btnSubmit = document.getElementById('btn-submit');
-    const msg = document.getElementById('message');
-    const pseudoInput = document.getElementById('pseudo');
-    const passwdInput = document.getElementById('passwd');
+<div>
+  <button id="showLogin">Se connecter</button>
+  <button id="showSignup">S'inscrire</button>
+</div>
 
-    let mode = null;
+<!-- Formulaire Connexion -->
+<form id="loginForm" style="display:none;">
+  <h2>Connexion</h2>
+  <input id="loginUser" placeholder="Nom d'utilisateur" required /><br />
+  <input id="loginPass" type="password" placeholder="Mot de passe" required /><br />
+  <button type="submit">Connexion</button>
+</form>
 
-    btnLoginChoice.onclick = () => {
-      mode = 'login';
-      formContainer.style.display = 'block';
-      btnSubmit.textContent = 'Se connecter';
-      msg.textContent = '';
-      pseudoInput.value = '';
-      passwdInput.value = '';
-    };
+<!-- Formulaire Inscription -->
+<form id="signupForm" style="display:none;">
+  <h2>Inscription</h2>
+  <input id="signupUser" placeholder="Nom d'utilisateur" required /><br />
+  <input id="signupPass" type="password" placeholder="Mot de passe" required /><br />
+  <input id="signupAge" type="number" placeholder="Âge (≥13)" min="13" required /><br />
+  <input id="signupHeight" type="number" placeholder="Taille (cm)" min="50" max="300" /><br />
+  <input id="signupHair" placeholder="Couleur des cheveux" /><br />
+  <textarea id="signupBio" placeholder="À propos de toi..."></textarea><br />
+  <button type="submit">S'inscrire</button>
+</form>
 
-    btnRegisterChoice.onclick = () => {
-      mode = 'register';
-      formContainer.style.display = 'block';
-      btnSubmit.textContent = "S'inscrire";
-      msg.textContent = '';
-      pseudoInput.value = '';
-      passwdInput.value = '';
-    };
+<script>
+  const msgEl = document.getElementById('msg');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const showLoginBtn = document.getElementById('showLogin');
+  const showSignupBtn = document.getElementById('showSignup');
 
-    function hash(str) {
-      let h = 0;
-      for (let i = 0; i < str.length; i++) h = (h << 5) - h + str.charCodeAt(i);
-      return h.toString();
+  // Affiche login ou signup
+  showLoginBtn.onclick = () => {
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    msgEl.textContent = '';
+  };
+  showSignupBtn.onclick = () => {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+    msgEl.textContent = '';
+  };
+
+  // Par défaut affichage connexion
+  showLoginBtn.click();
+
+  // Utilisateurs stockés dans localStorage sous 'users' (objet { pseudo: {...} })
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('users') || '{}');
+  }
+  function setUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
+  // Connexion
+  loginForm.onsubmit = e => {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+
+    const users = getUsers();
+
+    if (!users[user]) {
+      msgEl.textContent = 'Utilisateur introuvable.';
+      msgEl.className = 'error';
+      return;
+    }
+    if (users[user].password !== pass) {
+      msgEl.textContent = 'Mot de passe incorrect.';
+      msgEl.className = 'error';
+      return;
+    }
+    // Connexion OK
+    localStorage.setItem('sessionUser', user);
+    msgEl.textContent = 'Connexion réussie ! Redirection...';
+    msgEl.className = 'success';
+    setTimeout(() => window.location.href = 'app.html', 1000);
+  };
+
+  // Inscription
+  signupForm.onsubmit = e => {
+    e.preventDefault();
+    const user = document.getElementById('signupUser').value.trim();
+    const pass = document.getElementById('signupPass').value;
+    const age = parseInt(document.getElementById('signupAge').value);
+    const height = parseInt(document.getElementById('signupHeight').value) || '';
+    const hair = document.getElementById('signupHair').value.trim();
+    const bio = document.getElementById('signupBio').value.trim();
+
+    if (user.length < 3) {
+      msgEl.textContent = 'Nom d’utilisateur trop court.';
+      msgEl.className = 'error';
+      return;
+    }
+    if (pass.length < 4) {
+      msgEl.textContent = 'Mot de passe trop court.';
+      msgEl.className = 'error';
+      return;
+    }
+    if (isNaN(age) || age < 13) {
+      msgEl.textContent = 'Tu dois avoir au moins 13 ans.';
+      msgEl.className = 'error';
+      return;
     }
 
-    btnSubmit.onclick = () => {
-      const pseudo = pseudoInput.value.trim();
-      const passwd = passwdInput.value;
+    const users = getUsers();
+    if (users[user]) {
+      msgEl.textContent = 'Ce nom d’utilisateur est déjà pris.';
+      msgEl.className = 'error';
+      return;
+    }
 
-      if (!pseudo || passwd.length < 3) {
-        msg.textContent = 'Entre un pseudo et un mot de passe (≥ 3 caractères).';
-        return;
-      }
-
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const hashed = hash(passwd);
-
-      if (mode === 'register') {
-        if (users[pseudo]) {
-          msg.textContent = "Ce pseudo est déjà pris.";
-          return;
-        }
-        users[pseudo] = hashed;
-        localStorage.setItem('users', JSON.stringify(users));
-        msg.textContent = `Inscription réussie : bienvenue ${pseudo} 🎉`;
-        setTimeout(() => {
-          localStorage.setItem('sessionUser', pseudo);
-          window.location.href = 'app.html';
-        }, 1200);
-      } else if (mode === 'login') {
-        if (!users[pseudo]) {
-          msg.textContent = "Ce pseudo n'existe pas.";
-          return;
-        }
-        if (users[pseudo] !== hashed) {
-          msg.textContent = "Mot de passe incorrect.";
-          return;
-        }
-        msg.textContent = `Connexion réussie : bienvenue ${pseudo} 👍`;
-        setTimeout(() => {
-          localStorage.setItem('sessionUser', pseudo);
-          window.location.href = 'app.html';
-        }, 1200);
-      }
+    users[user] = {
+      password: pass,
+      age, height, hair, bio
     };
-  </script>
+
+    setUsers(users);
+    msgEl.textContent = 'Inscription réussie, connecte-toi !';
+    msgEl.className = 'success';
+
+    // Reset formulaire inscription
+    signupForm.reset();
+
+    // Afficher connexion
+    showLoginBtn.click();
+  };
+</script>
 </body>
 </html>
