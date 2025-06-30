@@ -37,7 +37,7 @@
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.2</div>
+  <div id="version-tag">Version 0.1.3</div>
   <h1>Bienvenue sur <b>ChattFun</b></h1>
   <button id="login">🔐 Se connecter</button>
   <button id="logout" style="display:none;">🔓 Se déconnecter</button>
@@ -46,40 +46,44 @@
   <script type="module">
     import { createAuth0Client } from "https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js";
 
-    const auth0 = await createAuth0Client({
-      domain: "dev-1u0hzd1jo60i8bus.us.auth0.com",
-      client_id: "dJlHlaFiPpAR1PVwlgdjk6cprjRlig9c",
-      cacheLocation: 'localstorage'
-    });
+    async function main() {
+      const auth0 = await createAuth0Client({
+        domain: "dev-1u0hzd1jo60i8bus.us.auth0.com",
+        client_id: "dJlHlaFiPpAR1PVwlgdjk6cprjRlig9c",
+        cacheLocation: 'localstorage'
+      });
 
-    // Gestion du callback après redirection Auth0
-    if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-      await auth0.handleRedirectCallback();
-      window.history.replaceState({}, document.title, "/");
+      // Gestion du retour après redirection
+      if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, "/");
+      }
+
+      const user = await auth0.getUser();
+      const loginBtn = document.getElementById("login");
+      const logoutBtn = document.getElementById("logout");
+      const userInfo = document.getElementById("user-info");
+
+      if (user) {
+        userInfo.innerText = `Connecté en tant que : ${user.email}`;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+      }
+
+      loginBtn.addEventListener("click", () => {
+        auth0.loginWithRedirect({
+          redirect_uri: window.location.origin
+        });
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        auth0.logout({
+          returnTo: window.location.origin
+        });
+      });
     }
 
-    const user = await auth0.getUser();
-    const loginBtn = document.getElementById("login");
-    const logoutBtn = document.getElementById("logout");
-    const userInfo = document.getElementById("user-info");
-
-    if (user) {
-      userInfo.innerText = `Connecté en tant que : ${user.email}`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-    }
-
-    loginBtn.addEventListener("click", () => {
-      auth0.loginWithRedirect({
-        redirect_uri: window.location.origin
-      });
-    });
-
-    logoutBtn.addEventListener("click", () => {
-      auth0.logout({
-        returnTo: window.location.origin
-      });
-    });
+    main();
   </script>
 </body>
 </html>
