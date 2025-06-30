@@ -1,4 +1,66 @@
-document.getElementById('loginBtn').addEventListener('click', function() {
-  alert("Bouton cliqué !");
-  // Ton code login ici, ou laisse vide pour tester
-});
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChattFun - Connexion</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 10px;
+      background: #f0f0f0;
+    }
+    input {
+      padding: 12px;
+      width: 90%;
+      max-width: 400px;
+      margin: 10px auto;
+      display: block;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 14px 0;
+      width: 90%;
+      max-width: 400px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 20px auto;
+      display: block;
+    }
+    #version-tag {
+      position: fixed;
+      top: 5px;
+      left: 5px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: monospace;
+      border-radius: 4px;
+      user-select: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="version-tag">Version 0.0.1</div>
+
+  <h1>🔐 Connexion à <b>ChattFun</b></h1>
+  <input type="email" id="email" placeholder="Email" autocomplete="username" />
+  <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" />
+  <button id="loginBtn">Se connecter / S'inscrire</button>
+
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      alert('Bouton cliqué !');
+    });
+  </script>
+</body>
+</html>
