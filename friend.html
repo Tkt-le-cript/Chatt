@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChattFun - Amis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      min-height: 100vh;
+    }
+    button {
+      background: #4caf50;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    #friendList {
+      margin-top: 20px;
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    #friendList li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    #friendList li:last-child {
+      border-bottom: none;
+    }
+    #friendList button {
+      background: #f44336;
+      color: white;
+      border-radius: 6px;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mes Amis</h1>
+  <button id="backBtn">← Retour au profil</button>
+
+  <ul id="friendList"></ul>
+
+  <form id="addFriendForm">
+    <input type="text" id="friendName" placeholder="Pseudo de l'ami à ajouter" autocomplete="off" required />
+    <button type="submit">Ajouter un ami</button>
+  </form>
+
+  <div id="friendMsg" style="margin-top: 10px; font-weight: 700;"></div>
+
+  <script>
+    const sessionUser = localStorage.getItem('sessionUser');
+    if (!sessionUser) {
+      alert("Tu n'es pas connecté !");
+      window.location.href = 'index.html';
+    }
+
+    const friendList = document.getElementById('friendList');
+    const addFriendForm = document.getElementById('addFriendForm');
+    const friendNameInput = document.getElementById('friendName');
+    const friendMsg = document.getElementById('friendMsg');
+    const backBtn = document.getElementById('backBtn');
+
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'app.html';
+    });
+
+    function renderFriends() {
+      friendList.innerHTML = '';
+      const allFriends = JSON.parse(localStorage.getItem('friends') || '{}');
+      const myFriends = allFriends[sessionUser] || [];
+
+      if (myFriends.length === 0) {
+        friendList.innerHTML = '<li>Tu n\'as pas encore d\'amis.</li>';
+        return;
+      }
+
+      myFriends.forEach(friend => {
+        const li = document.createElement('li');
+        li.textContent = friend;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Supprimer';
+        removeBtn.addEventListener('click', () => {
+          removeFriend(friend);
+        });
+        li.appendChild(removeBtn);
+
+        friendList.appendChild(li);
+      });
+    }
+
+    function removeFriend(friendName) {
+      const allFriends = JSON.parse(localStorage.getItem('friends') || '{}');
+      let myFriends = allFriends[sessionUser] || [];
+      myFriends = myFriends.filter(f => f !== friendName);
+      allFriends[sessionUser] = myFriends;
+      localStorage.setItem('friends', JSON.stringify(allFriends));
+      friendMsg.style.color = '#388e3c';
+      friendMsg.textContent = `Ami "${friendName}" supprimé.`;
+      renderFriends();
+    }
+
+    addFriendForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const newFriend = friendNameInput.value.trim();
+
+      if (!newFriend) {
+        friendMsg.style.color = '#d32f2f';
+        friendMsg.textContent = "Entre un pseudo valide.";
+        return;
+      }
+
+      if (newFriend === sessionUser) {
+        friendMsg.style.color = '#d32f2f';
+        friendMsg.textContent = "Tu ne peux pas t'ajouter toi-même.";
+        return;
+      }
+
+      // Vérifier que l'utilisateur existe
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (!users[newFriend]) {
+        friendMsg.style.color = '#d32f2f';
+        friendMsg.textContent = `L'utilisateur "${newFriend}" n'existe pas.`;
+        return;
+      }
+
+      const allFriends = JSON.parse(localStorage.getItem('friends') || '{}');
+      let myFriends = allFriends[sessionUser] || [];
+
+      if (myFriends.includes(newFriend)) {
+        friendMsg.style.color = '#d32f2f';
+        friendMsg.textContent = `"${newFriend}" est déjà dans ta liste d'amis.`;
+        return;
+      }
+
+      myFriends.push(newFriend);
+      allFriends[sessionUser] = myFriends;
+      localStorage.setItem('friends', JSON.stringify(allFriends));
+
+      friendMsg.style.color = '#388e3c';
+      friendMsg.textContent = `"${newFriend}" ajouté à tes amis.`;
+
+      friendNameInput.value = '';
+      renderFriends();
+    });
+
+    // Initialisation
+    renderFriends();
+  </script>
+</body>
+</html>
