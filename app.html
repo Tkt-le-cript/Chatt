@@ -2,36 +2,41 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Mon espace - ChattFun</title>
+  <title>ChattFun - Mon espace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 </head>
-<body>
-
-  <h2>Bienvenue 👋</h2>
+<body style="font-family:Arial, sans-serif;text-align:center;padding:40px;">
+  <h2>Mon espace ChattFun</h2>
   <div id="usernameForm" style="display:none;">
     <p>Choisis ton pseudo :</p>
     <input type="text" id="usernameInput" placeholder="Ton pseudo" />
-    <button onclick="saveUsername()">Valider</button>
+    <button onclick="saveUsername()">Valider pseudo</button>
   </div>
 
   <div id="userArea" style="display:none;">
-    <p>Connecté en tant que <b><span id="userPseudo"></span></b></p>
+    <p>Connecté en tant que : <b><span id="userPseudo"></span></b></p>
+    <button onclick="logout()">Déconnexion</button>
+
+    <!-- Ajoute ici bientôt la liste d'amis et chat -->
   </div>
 
   <script>
+    // 🔧 Config Firebase (mêmes valeurs)
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
       projectId: "chattfun-b892f"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // 🔁 Vérifier connexion / redirection
     auth.onAuthStateChanged(async (user) => {
       if (!user) return window.location.href = "index.html";
 
@@ -44,18 +49,23 @@
       }
     });
 
+    // 🔽 Sauvegarder pseudo
     async function saveUsername() {
       const pseudo = document.getElementById("usernameInput").value.trim();
+      if (!pseudo) return alert("Entre un pseudo valide.");
       const user = auth.currentUser;
-      if (!pseudo) return alert("Entre un pseudo !");
       await db.collection("users").doc(user.uid).set({
         uid: user.uid,
         email: user.email,
-        pseudo: pseudo
+        pseudo
       });
       location.reload();
     }
-  </script>
 
+    // ↩️ Déconnexion
+    function logout() {
+      auth.signOut().then(() => window.location.href = "index.html");
+    }
+  </script>
 </body>
 </html>
