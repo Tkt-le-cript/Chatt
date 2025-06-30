@@ -43,7 +43,7 @@
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.0.7</div>
+  <div id="version-tag">Version 0.0.8</div>
 
   <h1>🔐 Connexion à <b>ChattFun</b></h1>
   <input type="email" id="email" placeholder="Email" autocomplete="username" />
@@ -60,7 +60,7 @@
       netlifyIdentity.init();
 
       const loginBtn = document.getElementById('loginBtn');
-      loginBtn.addEventListener('click', async () => {
+      loginBtn.addEventListener('click', () => {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value.trim();
 
@@ -69,23 +69,21 @@
           return;
         }
 
-        try {
-          let user = netlifyIdentity.currentUser();
-          if (!user) {
-            user = await netlifyIdentity.signup(email, password);
-            alert("Inscription réussie !");
-          } else {
-            alert("Utilisateur déjà connecté");
-          }
-          // Connexion
-          await netlifyIdentity.login(email, password);
-          alert("Connexion réussie !");
-          // Rediriger vers app.html ou autre
+        // On affiche le widget officiel qui gère inscription/connexion
+        netlifyIdentity.open();
+
+        // Optionnel : écouter la connexion
+        netlifyIdentity.on('login', user => {
+          alert("Connexion réussie, bienvenue " + user.email);
+          // Ici tu peux rediriger
           // window.location.href = "app.html";
-        } catch (err) {
-          alert("Erreur : " + err.message);
+          netlifyIdentity.close();
+        });
+
+        netlifyIdentity.on('error', err => {
+          alert("Erreur d'authentification : " + err.message);
           console.error(err);
-        }
+        });
       });
     });
   </script>
