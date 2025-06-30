@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>ChattFun - Bienvenue</title>
+  <title>ChattFun - Connexion</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Firebase JS SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
   <style>
     body {
@@ -15,94 +15,68 @@
       text-align: center;
       padding: 40px;
     }
-    .btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
-      transition: background 0.2s ease;
-    }
-    .google {
-      background: #4285f4;
-      color: white;
-    }
-    .google:active {
-      background: #3367d6;
-    }
-    .email {
-      background: #34a853;
-      color: white;
-    }
-    .email:active {
-      background: #2c8b46;
-    }
     input {
       padding: 10px;
       width: 80%;
-      margin: 5px auto;
+      margin: 10px auto;
+      display: block;
       font-size: 16px;
     }
-    #emailForm {
-      display: none;
+    button {
+      padding: 12px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
       margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>Bienvenue sur <b>ChattFun</b> 🎉</h1>
-  <p>Connecte-toi pour chatter avec tes amis !</p>
-
-  <button id="btnGoogle" class="btn google">Se connecter avec Google</button>
-  <br>
-  <button id="showEmailForm" class="btn email">Se connecter avec Email</button>
-
-  <div id="emailForm">
-    <input type="email" id="emailInput" placeholder="Email" /><br>
-    <input type="password" id="passwordInput" placeholder="Mot de passe" /><br>
-    <button id="btnEmailLogin" class="btn email">Connexion Email</button>
-  </div>
+  <h1>🔐 Connexion à <b>ChattFun</b></h1>
+  <input type="text" id="username" placeholder="Nom d'utilisateur">
+  <input type="password" id="password" placeholder="Mot de passe">
+  <button onclick="login()">Se connecter</button>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const firebaseConfig = {
-        apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
-        authDomain: "chattfun-b892f.firebaseapp.com",
-        projectId: "chattfun-b892f"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
+    // 🔧 Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
+      authDomain: "chattfun-b892f.firebaseapp.com",
+      projectId: "chattfun-b892f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-      // ✅ Connexion avec Google
-      document.getElementById("btnGoogle").addEventListener("click", () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithRedirect(provider);
-      });
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-      // ✅ Gestion du retour après redirection Google
-      auth.getRedirectResult()
-        .then(result => {
-          if (result.user) {
+      if (!username || !password) return alert("Remplis tous les champs");
+
+      const userRef = db.collection("users").doc(username);
+      userRef.get().then(doc => {
+        if (doc.exists) {
+          // 🔐 Vérification du mot de passe
+          if (doc.data().password === password) {
+            localStorage.setItem("username", username);
             window.location.href = "app.html";
+          } else {
+            alert("Mot de passe incorrect");
           }
-        })
-        .catch(err => alert("Erreur : " + err.message));
-
-      // ✅ Afficher le formulaire email
-      document.getElementById("showEmailForm").addEventListener("click", () => {
-        document.getElementById("emailForm").style.display = "block";
+        } else {
+          // 👤 Nouveau compte
+          userRef.set({ password: password, friends: [] }).then(() => {
+            localStorage.setItem("username", username);
+            window.location.href = "app.html";
+          });
+        }
+      }).catch(e => {
+        alert("Erreur de connexion : " + e.message);
       });
-
-      // ✅ Connexion avec Email/Mot de passe
-      document.getElementById("btnEmailLogin").addEventListener("click", () => {
-        const email = document.getElementById("emailInput").value;
-        const password = document.getElementById("passwordInput").value;
-        auth.signInWithEmailAndPassword(email, password)
-          .then(() => window.location.href = "app.html")
-          .catch(e => alert("Erreur : " + e.message));
-      });
-    });
+    }
   </script>
 </body>
 </html>
