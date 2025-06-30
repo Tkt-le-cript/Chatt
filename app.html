@@ -5,13 +5,63 @@
   <title>ChattFun - Profil</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
-    button { padding: 12px 24px; font-size: 16px; border: none; background: #f44336; color: white; border-radius: 8px; cursor: pointer; margin-top: 20px; }
-    #version-tag { position: fixed; top: 5px; left: 5px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; font-family: monospace; font-size: 12px; border-radius: 4px; z-index: 9999; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    #welcome {
+      font-size: 20px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    button {
+      padding: 14px 30px;
+      font-size: 18px;
+      border: none;
+      background: #f44336;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #d32f2f;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+    }
+    #version-tag {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.5);
+      color: #eee;
+      padding: 5px 12px;
+      font-family: monospace;
+      font-size: 13px;
+      border-radius: 6px;
+      user-select: none;
+      z-index: 9999;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.6</div>
+  <div id="version-tag">Version 0.1.7</div>
   <h1>Mon profil ChattFun</h1>
   <p id="welcome"></p>
   <button id="logoutBtn">Déconnexion</button>
