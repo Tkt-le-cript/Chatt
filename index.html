@@ -2,36 +2,30 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>ChattFun - Connexion Netlify Identity</title>
+  <title>ChattFun - Connexion</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 40px;
     }
-    input, button {
-      padding: 12px;
-      margin: 10px auto;
-      display: block;
-      width: 90%;
-      max-width: 400px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
     button {
-      background: #4CAF50;
-      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
       border: none;
-      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
       border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
     }
     #version-tag {
       position: fixed;
       top: 5px;
       left: 5px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       color: white;
       padding: 4px 8px;
       font-size: 12px;
@@ -43,47 +37,47 @@
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.0.8</div>
+  <div id="version-tag">Version 0.1.2</div>
+  <h1>Bienvenue sur <b>ChattFun</b></h1>
+  <button id="login">🔐 Se connecter</button>
+  <button id="logout" style="display:none;">🔓 Se déconnecter</button>
+  <p id="user-info"></p>
 
-  <h1>🔐 Connexion à <b>ChattFun</b></h1>
-  <input type="email" id="email" placeholder="Email" autocomplete="username" />
-  <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" />
-  <button id="loginBtn">Se connecter / S'inscrire</button>
+  <script type="module">
+    import { createAuth0Client } from "https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js";
 
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!netlifyIdentity) {
-        alert("Netlify Identity non chargé !");
-        return;
-      }
-      netlifyIdentity.init();
+    const auth0 = await createAuth0Client({
+      domain: "dev-1u0hzd1jo60i8bus.us.auth0.com",
+      client_id: "dJlHlaFiPpAR1PVwlgdjk6cprjRlig9c",
+      cacheLocation: 'localstorage'
+    });
 
-      const loginBtn = document.getElementById('loginBtn');
-      loginBtn.addEventListener('click', () => {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
+    // Gestion du callback après redirection Auth0
+    if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+      await auth0.handleRedirectCallback();
+      window.history.replaceState({}, document.title, "/");
+    }
 
-        if (!email || !password) {
-          alert("Remplis tous les champs");
-          return;
-        }
+    const user = await auth0.getUser();
+    const loginBtn = document.getElementById("login");
+    const logoutBtn = document.getElementById("logout");
+    const userInfo = document.getElementById("user-info");
 
-        // On affiche le widget officiel qui gère inscription/connexion
-        netlifyIdentity.open();
+    if (user) {
+      userInfo.innerText = `Connecté en tant que : ${user.email}`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+    }
 
-        // Optionnel : écouter la connexion
-        netlifyIdentity.on('login', user => {
-          alert("Connexion réussie, bienvenue " + user.email);
-          // Ici tu peux rediriger
-          // window.location.href = "app.html";
-          netlifyIdentity.close();
-        });
+    loginBtn.addEventListener("click", () => {
+      auth0.loginWithRedirect({
+        redirect_uri: window.location.origin
+      });
+    });
 
-        netlifyIdentity.on('error', err => {
-          alert("Erreur d'authentification : " + err.message);
-          console.error(err);
-        });
+    logoutBtn.addEventListener("click", () => {
+      auth0.logout({
+        returnTo: window.location.origin
       });
     });
   </script>
