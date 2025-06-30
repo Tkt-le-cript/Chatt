@@ -3,6 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <title>ChattFun - Connexion</title>
+  <style>
+    /* Version en haut à gauche */
+    #version-tag {
+      position: fixed;
+      top: 5px;
+      left: 5px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: monospace;
+      border-radius: 4px;
+      user-select: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="version-tag"></div>
+
+  <!-- Le reste de ton contenu -->
+
+  <script>
+    // Version de l'app suivant ta règle
+    const version = "0.0.1";
+
+    // Affiche la version dans le tag dédié
+    document.getElementById('version-tag').innerText = `Version ${version}`;
+  </script>
+</body>
+</html> 
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChattFun - Connexion</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
