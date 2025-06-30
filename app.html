@@ -2,48 +2,209 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>ChattFun - Profil</title>
+  <title>ChattFun - Espace Utilisateur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* Reset simple */
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: #fff;
-      padding: 40px 20px;
+      margin: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+    /* Barre navigation */
+    nav {
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      user-select: none;
+    }
+    nav .logo {
+      font-weight: 700;
+      font-size: 20px;
+      color: #ffcc00;
+    }
+    nav button {
+      background: #4caf50;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-left: 10px;
+    }
+    nav button:hover {
+      background: #45a049;
+    }
+
+    /* Contenu principal */
+    main {
+      flex: 1;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    /* Tabs */
+    .tabs {
+      display: flex;
       justify-content: center;
+      margin-bottom: 25px;
+    }
+    .tabs button {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      padding: 12px 0;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      border-radius: 10px 10px 0 0;
+      margin: 0 5px;
+    }
+    .tabs button.active {
+      background: #ffcc00;
+      color: #000;
+      box-shadow: 0 4px 10px rgba(255,204,0,0.5);
+    }
+    .tabs button:hover:not(.active) {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Contenus des onglets */
+    .tab-content {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: #000;
+      min-height: 300px;
+    }
+
+    /* Form profil */
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button.save-profile {
+      background-color: #4caf50;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      width: 100%;
+      cursor: pointer;
+      border: none;
+      padding: 14px 0;
+      border-radius: 10px;
+      transition: background-color 0.3s ease;
+    }
+    button.save-profile:hover {
+      background-color: #45a049;
+    }
+
+    /* Liste amis */
+    #friendList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+    }
+    #friendList li {
+      padding: 10px 15px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
     }
-    h1 {
-      font-weight: 700;
-      margin-bottom: 30px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    #friendList li:last-child {
+      border-bottom: none;
     }
-    #welcome {
-      font-size: 20px;
-      margin-bottom: 30px;
-      font-weight: 600;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-    button {
-      padding: 14px 30px;
-      font-size: 18px;
-      border: none;
+    #friendList button {
       background: #f44336;
-      color: #fff;
-      border-radius: 10px;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      padding: 5px 10px;
       cursor: pointer;
-      font-weight: 700;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      font-weight: 600;
       transition: background 0.3s ease;
     }
-    button:hover {
+    #friendList button:hover {
       background: #d32f2f;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
     }
+
+    /* Ajout ami */
+    #addFriendForm {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    #addFriendForm input {
+      flex: 1;
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+    #addFriendForm button {
+      background: #2196f3;
+      padding: 10px 20px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #addFriendForm button:hover {
+      background: #1976d2;
+    }
+
+    /* Message général */
+    #generalMsg {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 700;
+      color: #ff5722;
+      user-select: none;
+      min-height: 24px;
+    }
+
+    /* Version tag */
     #version-tag {
       position: fixed;
       top: 8px;
@@ -61,27 +222,157 @@
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.7</div>
-  <h1>Mon profil ChattFun</h1>
-  <p id="welcome"></p>
-  <button id="logoutBtn">Déconnexion</button>
+  <div id="version-tag">Version 0.2.0</div>
+  <nav>
+    <div class="logo">ChattFun</div>
+    <div>
+      <button id="btnProfile">Profil</button>
+      <button id="btnLogout">Déconnexion</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="tabs">
+      <button class="tabBtn active" data-tab="profileTab">Profil</button>
+      <button class="tabBtn" data-tab="friendsTab">Amis</button>
+    </div>
+
+    <section id="profileTab" class="tab-content">
+      <h2>Mon Profil</h2>
+      <form id="profileForm">
+        <label for="age">Âge (≥ 13 ans)</label>
+        <input type="number" id="age" min="13" max="120" placeholder="Ton âge" required />
+
+        <label for="height">Taille (cm)</label>
+        <input type="number" id="height" min="50" max="300" placeholder="Ta taille" />
+
+        <label for="hairColor">Couleur des cheveux</label>
+        <select id="hairColor" required>
+          <option value="">-- Choisis une couleur --</option>
+          <option value="Blond">Blond</option>
+          <option value="Brun">Brun</option>
+          <option value="Châtain">Châtain</option>
+          <option value="Noir">Noir</option>
+          <option value="Roux">Roux</option>
+          <option value="Autre">Autre</option>
+        </select>
+
+        <label for="bio">À propos de toi</label>
+        <textarea id="bio" rows="4" placeholder="Parle-nous un peu de toi..." style="width:100%; border-radius:8px; padding:10px; font-size:16px;"></textarea>
+
+        <button type="submit" class="save-profile">Sauvegarder</button>
+      </form>
+      <div id="profileMsg" style="margin-top: 10px; font-weight:600;"></div>
+    </section>
+
+    <section id="friendsTab" class="tab-content" style="display:none;">
+      <h2>Mes Amis</h2>
+      <ul id="friendList"></ul>
+
+      <form id="addFriendForm">
+        <input type="text" id="friendName" placeholder="Pseudo de l'ami à ajouter" autocomplete="off" required />
+        <button type="submit">Ajouter</button>
+      </form>
+      <div id="friendMsg" style="margin-top: 10px; font-weight:600;"></div>
+    </section>
+  </main>
 
   <script>
-    const welcome = document.getElementById('welcome');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const version = '0.2.0';
+    document.getElementById('version-tag').innerText = `Version ${version}`;
 
-    const sessionUser = localStorage.getItem('sessionUser');
+    // Navigation boutons
+    const btnProfile = document.getElementById('btnProfile');
+    const btnLogout = document.getElementById('btnLogout');
 
-    if (!sessionUser) {
-      window.location.href = 'index.html';
-    } else {
-      welcome.textContent = `Connecté en tant que : ${sessionUser}`;
+    const tabs = document.querySelectorAll('.tabBtn');
+    const profileTab = document.getElementById('profileTab');
+    const friendsTab = document.getElementById('friendsTab');
+
+    let sessionUser = localStorage.getItem('sessionUser');
+    if (!sessionUser) window.location.href = 'index.html';
+
+    // Gestion onglets
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (btn.dataset.tab === 'profileTab') {
+          profileTab.style.display = 'block';
+          friendsTab.style.display = 'none';
+        } else {
+          profileTab.style.display = 'none';
+          friendsTab.style.display = 'block';
+          renderFriends();
+        }
+      });
+    });
+
+    // Profil - Chargement + sauvegarde
+    const profileForm = document.getElementById('profileForm');
+    const ageInput = document.getElementById('age');
+    const heightInput = document.getElementById('height');
+    const hairColorSelect = document.getElementById('hairColor');
+    const bioInput = document.getElementById('bio');
+    const profileMsg = document.getElementById('profileMsg');
+
+    function loadProfile() {
+      const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      if (allProfiles[sessionUser]) {
+        const p = allProfiles[sessionUser];
+        ageInput.value = p.age || '';
+        heightInput.value = p.height || '';
+        hairColorSelect.value = p.hairColor || '';
+        bioInput.value = p.bio || '';
+      }
     }
+    loadProfile();
 
-    logoutBtn.onclick = () => {
-      localStorage.removeItem('sessionUser');
-      window.location.href = 'index.html';
-    };
-  </script>
-</body>
-</html>
+    profileForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const age = parseInt(ageInput.value);
+      if (isNaN(age) || age < 13) {
+        profileMsg.style.color = '#d32f2f';
+        profileMsg.textContent = "Tu dois avoir au moins 13 ans.";
+        return;
+      }
+      const height = parseInt(heightInput.value) || '';
+      const hairColor = hairColorSelect.value;
+      if (!hairColor) {
+        profileMsg.style.color = '#d32f2f';
+        profileMsg.textContent = "Choisis une couleur de cheveux.";
+        return;
+      }
+      const bio = bioInput.value.trim();
+
+      const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      allProfiles[sessionUser] = { age, height, hairColor, bio };
+      localStorage.setItem('profiles', JSON.stringify(allProfiles));
+
+      profileMsg.style.color = '#388e3c';
+      profileMsg.textContent = "Profil sauvegardé avec succès !";
+    });
+
+    // Amis
+    const friendList = document.getElementById('friendList');
+    const addFriendForm = document.getElementById('addFriendForm');
+    const friendNameInput = document.getElementById('friendName');
+    const friendMsg = document.getElementById('friendMsg');
+
+    function renderFriends() {
+      friendList.innerHTML = '';
+      const allFriends = JSON.parse(localStorage.getItem('friends') || '{}');
+      const myFriends = allFriends[sessionUser] || [];
+
+      if (myFriends.length === 0) {
+        friendList.innerHTML = '<li>Tu n\'as pas encore d\'amis.</li>';
+        return;
+      }
+
+      myFriends.forEach(friend => {
+        const li = document.createElement('li');
+        li.textContent = friend;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Supprimer';
+        remove
