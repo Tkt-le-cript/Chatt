@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>ChattFun - Bienvenue</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Firebase JS SDK -->
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 </head>
-<body style="font-family:Arial, sans-serif;text-align:center;padding:40px;">
+<body style="font-family:Arial,sans-serif;text-align:center;padding:40px;">
   <h1>Bienvenue sur <b>ChattFun</b> 🎉</h1>
   <p>Connecte-toi avec Google pour chatter avec tes amis.</p>
-  <button id="btnLogin" style="padding:12px 20px;background:#4285f4;color:#fff;border:none;border-radius:8px;">Se connecter avec Google</button>
+  <button id="btnLogin"
+          style="padding:12px 20px;background:#4285f4;color:#fff;border:none;border-radius:8px;">
+    Se connecter avec Google
+  </button>
 
   <script>
-    // 🔧 Config Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
@@ -24,22 +24,16 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // 🔁 Action du bouton → redirection (plus fiable que popup)
     document.getElementById('btnLogin').addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithRedirect(provider);
     });
 
-    // 🔁 Après redirection, récupérer l’utilisateur connecté
     auth.getRedirectResult()
-      .then(result => {
-        if (result.user) {
-          window.location.href = "app.html";
-        }
+      .then(res => {
+        if (res.user) window.location.href = "app.html";
       })
-      .catch(error => {
-        alert("Erreur : " + error.message);
-      });
+      .catch(err => alert("Erreur : " + err.message));
   </script>
 </body>
 </html>
