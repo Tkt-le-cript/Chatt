@@ -2,51 +2,34 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Bienvenue sur ChattFun</title>
+  <title>ChattFun - Bienvenue</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f4f8;
-      text-align: center;
-      padding: 40px;
-    }
-    button {
-      margin-top: 20px;
-      font-size: 1em;
-      padding: 12px 20px;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-    }
-  </style>
 </head>
-<body>
-
+<body style="font-family:Arial, sans-serif;text-align:center;padding:40px;">
   <h1>Bienvenue sur <b>ChattFun</b> 🎉</h1>
-  <p>Connecte-toi avec Google pour chatter avec tes amis !</p>
-  <button onclick="signIn()">Se connecter avec Google</button>
+  <p>Connecte-toi avec Google pour chatter avec tes amis.</p>
+  <button id="btnLogin" style="padding:12px 20px;background:#4285f4;color:#fff;border:none;border-radius:8px;">Se connecter avec Google</button>
 
   <script>
+    // 🔧 Config Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
       projectId: "chattfun-b892f"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    function signIn() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
+    // 🔁 Action du bouton
+    document.getElementById('btnLogin').onclick = () => {
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
         .then(() => window.location.href = "app.html")
         .catch(e => alert("Erreur : " + e.message));
-    }
+    };
   </script>
-
 </body>
 </html>
