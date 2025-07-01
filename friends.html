@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChattFun - Amis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #8e2de2, #4a00e0);
+      color: white;
+      margin: 0;
+    }
+    nav {
+      background: rgba(0,0,0,0.6);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-weight: bold;
+      font-size: 22px;
+      color: #ffccff;
+    }
+    nav button {
+      background: #ff4dd2;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: 0.3s;
+    }
+    nav button:hover {
+      background: #ff1ac6;
+    }
+    main {
+      max-width: 600px;
+      margin: 30px auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+    }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      color: black;
+    }
+    button.add-friend {
+      background-color: #00c3ff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button.add-friend:hover {
+      background-color: #00a8dd;
+    }
+    ul.friends-list {
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    ul.friends-list li {
+      background: rgba(0,0,0,0.3);
+      margin-bottom: 10px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    ul.friends-list button.remove-friend {
+      background: #ff4444;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    ul.friends-list button.remove-friend:hover {
+      background-color: #cc0000;
+    }
+    #msg {
+      text-align: center;
+      font-weight: bold;
+      min-height: 24px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">ChattFun</div>
+    <div>
+      <button id="btnProfile">Profil</button>
+      <button id="btnFriends">Amis</button>
+      <button id="logoutBtn">Déconnexion</button>
+    </div>
+  </nav>
+
+  <main>
+    <h2>Ajouter un ami</h2>
+    <input type="text" id="friendUsername" placeholder="Nom d'utilisateur de l'ami" maxlength="20" />
+    <button class="add-friend" id="addFriendBtn">Ajouter</button>
+    <ul class="friends-list" id="friendsList"></ul>
+    <p id="msg"></p>
+  </main>
+
+  <script>
+    const sessionUser = localStorage.getItem('sessionUser');
+    if (!sessionUser) {
+      alert("Tu dois être connecté !");
+      window.location.href = "index.html";
+    }
+
+    const btnProfile = document.getElementById('btnProfile');
+    const btnFriends = document.getElementById('btnFriends');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    btnProfile.addEventListener('click', () => window.location.href = 'app.html');
+    btnFriends.addEventListener('click', () => window.location.href = 'friends.html');
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('sessionUser');
+      window.location.href = 'index.html';
+    });
+
+    const friendInput = document.getElementById('friendUsername');
+    const addFriendBtn = document.getElementById('addFriendBtn');
+    const friendsList = document.getElementById('friendsList');
+    const msg = document.getElementById('msg');
+
+    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
+
+    // Initialiser liste amis pour cet utilisateur
+    if (!friends[sessionUser]) {
+      friends[sessionUser] = [];
+    }
+
+    function renderFriends() {
+      friendsList.innerHTML = '';
+      if (friends[sessionUser].length === 0) {
+        friendsList.innerHTML = '<li>Aucun ami ajouté.</li>';
+        return;
+      }
+      friends[sessionUser].forEach((friend, index) => {
+        const li = document.createElement('li');
+        li.textContent = friend;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Supprimer';
+        removeBtn.classList.add('remove-friend');
+        removeBtn.addEventListener('click', () => {
+          friends[sessionUser].splice(index, 1);
+          localStorage.setItem('friends', JSON.stringify(friends));
+          renderFriends();
+          msg.style.color = 'lightgreen';
+          msg.textContent = `Ami "${friend}" supprimé.`;
+          setTimeout(() => msg.textContent = '', 3000);
+        });
+
+        li.appendChild(removeBtn);
+        friendsList.appendChild(li);
+      });
+    }
+
+    addFriendBtn.addEventListener('click', () => {
+      const newFriend = friendInput.value.trim();
+      msg.textContent = '';
+
+      if (!newFriend) {
+        msg.style.color = 'red';
+        msg.textContent = "Entrez un nom d'utilisateur.";
+        return;
+      }
+      if (newFriend === sessionUser) {
+        msg.style.color = 'red';
+        msg.textContent = "Tu ne peux pas t'ajouter toi-même.";
+        return;
+      }
+      if (friends[sessionUser].includes(newFriend)) {
+        msg.style.color = 'red';
+        msg.textContent = "Cet ami est déjà dans ta liste.";
+        return;
+      }
+
+      // Optionnel: vérifier si l'ami existe dans profils
+      const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      if (!allProfiles[newFriend]) {
+        msg.style.color = 'orange';
+        msg.textContent = "Cet utilisateur n'existe pas (localement).";
+        return;
+      }
+
+      friends[sessionUser].push(newFriend);
+      localStorage.setItem('friends', JSON.stringify(friends));
+      friendInput.value = '';
+      renderFriends();
+
+      msg.style.color = 'lightgreen';
+      msg.textContent = `Ami "${newFriend}" ajouté !`;
+      setTimeout(() => msg.textContent = '', 3000);
+    });
+
+    renderFriends();
+  </script>
+</body>
+</html>
