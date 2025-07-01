@@ -69,18 +69,20 @@
       border: none;
       margin-bottom: 10px;
       font-size: 16px;
-      background-color: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      background-color: #fff;       /* champs en blanc */
+      color: #000;                  /* texte noir */
       outline: none;
       transition: background-color 0.3s;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
     }
     input[readonly] {
-      background-color: rgba(255, 255, 255, 0.05);
+      background-color: #e0e0e0;
       cursor: not-allowed;
-      color: #ddd;
+      color: #555;
     }
     input:focus:not([readonly]), select:focus, textarea:focus {
-      background-color: rgba(255, 255, 255, 0.25);
+      background-color: #f0f8ff;
+      box-shadow: 0 0 5px 2px #00c3ff;
     }
     button.save-profile {
       width: 100%;
@@ -163,7 +165,19 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
+      authDomain: "chattfun-b892f.firebaseapp.com",
+      projectId: "chattfun-b892f",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
     const sessionUser = localStorage.getItem('sessionUser');
     if (!sessionUser) {
       alert("Tu dois être connecté !");
@@ -196,7 +210,7 @@
 
     let msgTimeout;
 
-    // Interdire modification nom d'utilisateur et afficher message si tentative (pas possible car readonly, mais sécurité)
+    // Interdire modification nom d'utilisateur et afficher message si tentative (par sécurité)
     usernameInput.addEventListener('input', () => {
       usernameInput.value = sessionUser;
       alert("Le nom d'utilisateur ne peut pas être modifié ici.");
@@ -231,25 +245,39 @@
       window.location.href = 'index.html';
     });
 
-    deleteAccountBtn.addEventListener('click', () => {
+    deleteAccountBtn.addEventListener('click', async () => {
       const confirmDelete = confirm("Es-tu sûr de vouloir supprimer définitivement ton compte ? Cette action est irréversible.");
       if (!confirmDelete) return;
 
-      // Supprimer profil
-      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      delete profiles[sessionUser];
-      localStorage.setItem('profiles', JSON.stringify(profiles));
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Tu dois être connecté pour supprimer ton compte.");
+          return;
+        }
 
-      // Supprimer amis
-      const friends = JSON.parse(localStorage.getItem('friends') || '{}');
-      delete friends[sessionUser];
-      localStorage.setItem('friends', JSON.stringify(friends));
+        await user.delete();
 
-      // Supprimer session
-      localStorage.removeItem('sessionUser');
+        // Supprimer localStorage
+        const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+        delete profiles[sessionUser];
+        localStorage.setItem('profiles', JSON.stringify(profiles));
 
-      alert("Ton compte et toutes tes données ont été supprimés.");
-      window.location.href = "index.html";
+        // Suppression session
+        localStorage.removeItem('sessionUser');
+
+        alert("Ton compte et toutes tes données ont été supprimés.");
+        window.location.href = "index.html";
+
+      } catch (error) {
+        if (error.code === 'auth/requires-recent-login') {
+          alert("Tu dois te reconnecter avant de supprimer ton compte. Tu vas être déconnecté.");
+          localStorage.removeItem('sessionUser');
+          window.location.href = "index.html";
+        } else {
+          alert("Erreur lors de la suppression : " + error.message);
+        }
+      }
     });
   </script>
 </body>
