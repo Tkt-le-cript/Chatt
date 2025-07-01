@@ -5,7 +5,6 @@
   <title>ChattFun - Mon espace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* ... ton CSS inchangé ... */
     * {
       box-sizing: border-box;
     }
@@ -27,6 +26,11 @@
       font-weight: bold;
       color: #ffccff;
     }
+    nav div {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
     nav button {
       padding: 10px 16px;
       background-color: #ff4dd2;
@@ -36,12 +40,10 @@
       cursor: pointer;
       font-weight: bold;
       transition: 0.3s;
-      margin-left: 10px;
     }
     nav button:hover {
       background-color: #ff1ac6;
     }
-    /* ... reste CSS inchangé ... */
     main {
       padding: 30px 20px;
       max-width: 700px;
@@ -130,8 +132,8 @@
   <nav>
     <div class="logo">ChattFun</div>
     <div>
-      <button id="btnProfile">Profil</button>
-      <button id="btnFriends">Amis</button>
+      <button onclick="window.location.href='app.html'">Profil</button>
+      <button onclick="window.location.href='friends.html'">Amis</button>
       <button id="logoutBtn">Déconnexion</button>
     </div>
   </nav>
@@ -176,13 +178,13 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
-      projectId: "chattfun-b892f",
+      projectId: "chattfun-b892f"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const sessionUser = localStorage.getItem('sessionUser');
+    const sessionUser = sessionStorage.getItem('sessionUser');
     if (!sessionUser) {
       alert("Tu dois être connecté !");
       window.location.href = "index.html";
@@ -199,10 +201,8 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
-    // Afficher nom utilisateur (readonly)
     usernameInput.value = sessionUser;
 
-    // Charger données profil
     const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
     if (allProfiles[sessionUser]) {
       const p = allProfiles[sessionUser];
@@ -214,7 +214,6 @@
 
     let msgTimeout;
 
-    // Interdire modification nom d'utilisateur et afficher message si tentative (par sécurité)
     usernameInput.addEventListener('input', () => {
       usernameInput.value = sessionUser;
       alert("Le nom d'utilisateur ne peut pas être modifié ici.");
@@ -245,7 +244,7 @@
     });
 
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('sessionUser');
+      sessionStorage.removeItem('sessionUser');
       window.location.href = 'index.html';
     });
 
@@ -262,36 +261,23 @@
 
         await user.delete();
 
-        // Supprimer localStorage
         const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
         delete profiles[sessionUser];
         localStorage.setItem('profiles', JSON.stringify(profiles));
 
-        // Suppression session
-        localStorage.removeItem('sessionUser');
-
+        sessionStorage.removeItem('sessionUser');
         alert("Ton compte et toutes tes données ont été supprimés.");
         window.location.href = "index.html";
 
       } catch (error) {
         if (error.code === 'auth/requires-recent-login') {
           alert("Tu dois te reconnecter avant de supprimer ton compte. Tu vas être déconnecté.");
-          localStorage.removeItem('sessionUser');
+          sessionStorage.removeItem('sessionUser');
           window.location.href = "index.html";
         } else {
           alert("Erreur lors de la suppression : " + error.message);
         }
       }
-    });
-
-    // Ajout gestion des boutons menu
-    document.getElementById('btnProfile').addEventListener('click', () => {
-      // On reste sur la page profil
-      window.location.href = 'app.html';
-    });
-
-    document.getElementById('btnFriends').addEventListener('click', () => {
-      window.location.href = 'friends.html';
     });
   </script>
 </body>
