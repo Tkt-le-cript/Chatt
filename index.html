@@ -49,7 +49,7 @@
       font-size: 16px;
       outline: none;
     }
-    input[type="email"], input[type="password"] {
+    input[type="email"], input[type="password"], input[type="text"] {
       background: #3a007a;
       color: white;
     }
@@ -131,21 +131,23 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // Config Firebase — à adapter si besoin
+    // Config Firebase — adapte si besoin
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
       projectId: "chattfun-b892f",
-      // Ajoute d'autres configs si nécessaire
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const form = document.getElementById('authForm');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
     const submitBtn = document.getElementById('submitBtn');
     const switchMode = document.getElementById('switchMode');
     const formTitle = document.getElementById('formTitle');
@@ -160,16 +162,21 @@
         formTitle.textContent = 'Connexion';
         submitBtn.textContent = 'Se connecter';
         switchMode.textContent = "Pas encore inscrit ? Inscription";
+        usernameInput.style.display = 'none';
         errorMsg.textContent = '';
         successMsg.textContent = '';
       } else {
         formTitle.textContent = 'Inscription';
         submitBtn.textContent = "S'inscrire";
         switchMode.textContent = "Déjà un compte ? Connexion";
+        usernameInput.style.display = 'block';
         errorMsg.textContent = '';
         successMsg.textContent = '';
       }
     });
+
+    // Au démarrage, masquer le username si on est en mode connexion
+    if (isLoginMode) usernameInput.style.display = 'none';
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -178,24 +185,54 @@
 
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
+      const username = usernameInput.value.trim();
 
-      if (!email || !password) {
+      if (!email || !password || (!isLoginMode && !username)) {
         errorMsg.textContent = 'Tous les champs sont obligatoires.';
+        return;
+      }
+
+      if (!isLoginMode && username.length < 3) {
+        errorMsg.textContent = 'Le nom d\'utilisateur doit contenir au moins 3 caractères.';
         return;
       }
 
       try {
         if (isLoginMode) {
+          // Connexion
           await signInWithEmailAndPassword(auth, email, password);
           successMsg.textContent = 'Connexion réussie ! Redirection…';
+          // Récupérer le username associé à l'email depuis Firestore
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("email", "==", email));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            localStorage.setItem('sessionUser', userDoc.data().username || email);
+          } else {
+            localStorage.setItem('sessionUser', email); // fallback
+          }
         } else {
+          // Inscription — vérifier si username existe déjà
+          const usersRef = collection(db, "users");
+          const qUser = query(usersRef, where("username", "==", username));
+          const userSnapshot = await getDocs(qUser);
+          if (!userSnapshot.empty) {
+            errorMsg.textContent = 'Nom d\'utilisateur déjà pris. Choisis-en un autre.';
+            return;
+          }
+          // Créer le compte Firebase Auth
           await createUserWithEmailAndPassword(auth, email, password);
+          // Ajouter user dans Firestore
+          await addDoc(usersRef, { email, username });
           successMsg.textContent = 'Inscription réussie ! Redirection…';
+          localStorage.setItem('sessionUser', username);
         }
-        localStorage.setItem('sessionUser', email);
+
         setTimeout(() => {
           window.location.href = 'app.html';
         }, 1500);
+
       } catch (error) {
         if (error.code === 'auth/user-not-found' && isLoginMode) {
           errorMsg.textContent = "Utilisateur non trouvé. Essaie de t'inscrire.";
