@@ -285,9 +285,15 @@
 
     // Récupération session utilisateur (pseudo stocké localStorage à la connexion)
     const sessionUser = localStorage.getItem('sessionUser');
-    if (!sessionUser) {
-      alert("Tu n'es pas connecté !");
-      window.location.href = 'index.html';
+if (!sessionUser) {
+  alert("Tu n'es pas connecté !");
+  window.location.href = 'index.html';
+}
+
+btnLogout.addEventListener('click', () => {
+  localStorage.removeItem('sessionUser');
+  window.location.href = 'index.html';
+});
     }
 
     // Navigation boutons (pas besoin ici ils restent en place)
