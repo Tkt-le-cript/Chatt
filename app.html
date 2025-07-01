@@ -35,6 +35,7 @@
       cursor: pointer;
       font-weight: bold;
       transition: 0.3s;
+      margin-left: 10px;
     }
     nav button:hover {
       background-color: #ff1ac6;
@@ -86,25 +87,21 @@
     button.save-profile:hover {
       background-color: #00a8dd;
     }
-    button#deleteAccountBtn {
+    #deleteAccountBtn {
       margin-top: 20px;
-      background-color: #ff3b3b;
+      width: 100%;
+      padding: 12px;
+      font-weight: bold;
+      border-radius: 8px;
+      background-color: #ff4444;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
-    button#deleteAccountBtn:hover {
-      background-color: #dd2b2b;
-    }
-    #version-tag {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 13px;
-      color: #fff;
-      z-index: 1000;
-      display: none; /* Plus affiché */
+    #deleteAccountBtn:hover {
+      background-color: #cc0000;
     }
     #msg {
       text-align: center;
@@ -112,19 +109,9 @@
       font-weight: bold;
       min-height: 24px;
     }
-    .alert-info {
-      color: #ffd966;
-    }
-    .alert-success {
-      color: #90ee90;
-    }
-    .alert-error {
-      color: #ff6961;
-    }
   </style>
 </head>
 <body>
-
   <nav>
     <div class="logo">ChattFun</div>
     <div>
@@ -136,13 +123,7 @@
     <h2>Profil Utilisateur</h2>
     <section>
       <form id="profileForm">
-
-        <label for="username">Nom d'utilisateur</label>
-        <input type="text" id="username" required minlength="3" maxlength="20" />
-
-        <p id="usernameMsg" class="alert-info" style="font-size: 14px; margin-top: -10px; margin-bottom: 15px;"></p>
-
-        <label for="age">Âge (≥ 13 ans)</label>
+        <label for="age">Âge</label>
         <input type="number" id="age" min="13" max="120" required />
 
         <label for="height">Taille (en cm)</label>
@@ -163,10 +144,8 @@
 
         <button type="submit" class="save-profile">Sauvegarder</button>
       </form>
-
-      <p id="msg"></p>
-
       <button id="deleteAccountBtn">Supprimer mon compte</button>
+      <p id="msg"></p>
     </section>
   </main>
 
@@ -177,152 +156,77 @@
       window.location.href = "index.html";
     }
 
-    const usernameInput = document.getElementById('username');
     const ageInput = document.getElementById('age');
     const heightInput = document.getElementById('height');
     const hairColorInput = document.getElementById('hairColor');
     const bioInput = document.getElementById('bio');
     const msg = document.getElementById('msg');
-    const usernameMsg = document.getElementById('usernameMsg');
 
     const profileForm = document.getElementById('profileForm');
     const logoutBtn = document.getElementById('logoutBtn');
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
-    // Pour gérer changement nom d'utilisateur 1x/mois
-    const usernameChangeDates = JSON.parse(localStorage.getItem('usernameChangeDates') || '{}');
+    // Charger données profil
     const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-
-    // --- Chargement des données utilisateur ---
-    // On cherche le profil par la clé sessionUser (ancien nom d'utilisateur)
-    let currentProfile = allProfiles[sessionUser] || null;
-    if (!currentProfile) {
-      // si introuvable, on crée un profil vide
-      currentProfile = { age: '', height: '', hairColor: '', bio: '' };
+    if (allProfiles[sessionUser]) {
+      const p = allProfiles[sessionUser];
+      ageInput.value = p.age || '';
+      heightInput.value = p.height || '';
+      hairColorInput.value = p.hairColor || '';
+      bioInput.value = p.bio || '';
     }
 
-    // Affiche les infos
-    usernameInput.value = sessionUser;
-    ageInput.value = currentProfile.age || '';
-    heightInput.value = currentProfile.height || '';
-    hairColorInput.value = currentProfile.hairColor || '';
-    bioInput.value = currentProfile.bio || '';
+    let msgTimeout;
 
-    // Date du dernier changement nom d'utilisateur
-    let lastChangeDate = usernameChangeDates[sessionUser] || 0;
-
-    // Vérifie si on peut changer le nom d'utilisateur (1 fois/mois)
-    function canChangeUsername() {
-      const now = Date.now();
-      return (now - lastChangeDate) > 30 * 24 * 60 * 60 * 1000; // 30 jours en ms
-    }
-
-    // Mise à jour du message sur le nom d'utilisateur
-    function updateUsernameMsg() {
-      if (canChangeUsername()) {
-        usernameInput.disabled = false;
-        usernameMsg.textContent = "Tu peux changer ton nom d'utilisateur une fois par mois.";
-        usernameMsg.className = "alert-info";
-      } else {
-        usernameInput.disabled = true;
-        usernameMsg.textContent = "Tu as déjà changé ton nom d'utilisateur ce mois-ci.";
-        usernameMsg.className = "alert-error";
-      }
-    }
-    updateUsernameMsg();
-
-    // Fonction pour afficher un message temporaire
-    function showMsg(text, type) {
-      msg.textContent = text;
-      msg.className = type === 'error' ? 'alert-error' : (type === 'success' ? 'alert-success' : 'alert-info');
-      if(type !== 'error'){
-        setTimeout(() => {
-          msg.textContent = '';
-          msg.className = '';
-        }, 4000);
-      }
-    }
-
-    // Enregistrer les modifications
     profileForm.addEventListener('submit', e => {
       e.preventDefault();
+      clearTimeout(msgTimeout);
 
-      const newUsername = usernameInput.value.trim();
       const age = parseInt(ageInput.value);
-      if (!newUsername || newUsername.length < 3) {
-        showMsg("Le nom d'utilisateur doit contenir au moins 3 caractères.", "error");
-        return;
-      }
       if (isNaN(age) || age < 13) {
-        showMsg("Tu dois avoir au moins 13 ans.", "error");
+        msg.style.color = 'red';
+        msg.textContent = "Tu dois avoir au moins 13 ans.";
         return;
       }
+      const height = parseInt(heightInput.value) || '';
+      const hairColor = hairColorInput.value;
+      const bio = bioInput.value;
 
-      // Vérifier si le nom d'utilisateur a changé et si on peut changer
-      if (newUsername !== sessionUser && !canChangeUsername()) {
-        showMsg("Tu ne peux changer ton nom d'utilisateur qu'une fois par mois.", "error");
-        return;
-      }
-
-      // Vérifier si nouveau username existe déjà
-      if (newUsername !== sessionUser && allProfiles[newUsername]) {
-        showMsg("Ce nom d'utilisateur est déjà pris.", "error");
-        return;
-      }
-
-      // Enregistrer les données
-      // Si username changé : supprimer ancien, créer nouveau profil
-      if (newUsername !== sessionUser) {
-        delete allProfiles[sessionUser];
-        allProfiles[newUsername] = {
-          age,
-          height: parseInt(heightInput.value) || '',
-          hairColor: hairColorInput.value,
-          bio: bioInput.value.trim()
-        };
-        // Update sessionUser et date de changement
-        localStorage.setItem('sessionUser', newUsername);
-        usernameChangeDates[newUsername] = Date.now();
-        delete usernameChangeDates[sessionUser];
-        localStorage.setItem('usernameChangeDates', JSON.stringify(usernameChangeDates));
-        showMsg("Nom d'utilisateur changé et profil sauvegardé.", "success");
-      } else {
-        // Sinon juste mise à jour
-        allProfiles[sessionUser] = {
-          age,
-          height: parseInt(heightInput.value) || '',
-          hairColor: hairColorInput.value,
-          bio: bioInput.value.trim()
-        };
-        showMsg("Profil sauvegardé.", "success");
-      }
-
+      allProfiles[sessionUser] = { age, height, hairColor, bio };
       localStorage.setItem('profiles', JSON.stringify(allProfiles));
-      updateUsernameMsg();
+      msg.style.color = 'lightgreen';
+      msg.textContent = "Profil enregistré !";
+
+      msgTimeout = setTimeout(() => {
+        msg.textContent = '';
+      }, 3000);
     });
 
-    // Déconnexion
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('sessionUser');
       window.location.href = 'index.html';
     });
 
-    // Supprimer compte + données
     deleteAccountBtn.addEventListener('click', () => {
-      if(!confirm("Es-tu sûr de vouloir supprimer définitivement ton compte ? Cette action est irréversible.")) return;
+      const confirmDelete = confirm("Es-tu sûr de vouloir supprimer définitivement ton compte ? Cette action est irréversible.");
+      if (!confirmDelete) return;
 
-      const currentUser = localStorage.getItem('sessionUser');
-      if (!currentUser) {
-        alert("Erreur : utilisateur non trouvé en session.");
-        return;
-      }
-
+      // Supprimer profil
       const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      const usernameChangeDates = JSON.parse(localStorage.getItem('usernameChangeDates') || '{}');
+      delete profiles[sessionUser];
+      localStorage.setItem('profiles', JSON.stringify(profiles));
 
-      if (!(currentUser in profiles)) {
-        alert(`Aucun profil trouvé pour : ${currentUser}`);
-        return;
-      }
+      // Supprimer amis
+      const friends = JSON.parse(localStorage.getItem('friends') || '{}');
+      delete friends[sessionUser];
+      localStorage.setItem('friends', JSON.stringify(friends));
 
-      delete profiles[current
+      // Supprimer session
+      localStorage.removeItem('sessionUser');
+
+      alert("Ton compte et toutes tes données ont été supprimés.");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
