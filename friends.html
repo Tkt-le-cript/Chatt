@@ -6,10 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
+      margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif;
       background: linear-gradient(135deg, #8e2de2, #4a00e0);
-      color: white;
-      margin: 0;
+      color: #fff;
     }
     nav {
       background: rgba(0,0,0,0.6);
@@ -19,30 +18,32 @@
       align-items: center;
     }
     .logo {
-      font-weight: bold;
-      font-size: 22px;
-      color: #ffccff;
+      font-size: 22px; font-weight: bold; color: #ffccff;
+    }
+    nav div {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
     nav button {
-      background: #ff4dd2;
-      border: none;
       padding: 10px 16px;
-      border-radius: 8px;
+      background-color: #ff4dd2;
       color: white;
-      font-weight: bold;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      margin-left: 10px;
+      font-weight: bold;
       transition: 0.3s;
     }
     nav button:hover {
-      background: #ff1ac6;
+      background-color: #ff1ac6;
     }
     main {
-      max-width: 600px;
+      max-width: 700px;
       margin: 30px auto;
       background: rgba(255,255,255,0.1);
-      padding: 20px;
       border-radius: 12px;
+      padding: 20px;
       backdrop-filter: blur(6px);
     }
     h2 {
@@ -50,63 +51,74 @@
       margin-bottom: 20px;
       text-shadow: 0 1px 5px rgba(0,0,0,0.5);
     }
-    label, input, button {
-      display: block;
-      width: 100%;
-      margin-bottom: 12px;
+    input, button {
+      font-size: 16px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
     }
     input {
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      color: black;
+      width: calc(100% - 110px);
+      margin-right: 10px;
+      color: #000;
     }
-    button.add-friend {
+    button.addFriendBtn {
       background-color: #00c3ff;
       color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      width: 90px;
     }
-    button.add-friend:hover {
+    button.addFriendBtn:hover {
       background-color: #00a8dd;
     }
-    ul.friends-list {
+    ul {
       list-style: none;
       padding: 0;
-      max-height: 300px;
-      overflow-y: auto;
+      margin-top: 20px;
     }
-    ul.friends-list li {
-      background: rgba(0,0,0,0.3);
-      margin-bottom: 10px;
-      padding: 12px 15px;
+    li {
+      background: rgba(255,255,255,0.2);
+      padding: 12px;
       border-radius: 8px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    ul.friends-list button.remove-friend {
-      background: #ff4444;
-      border: none;
+    button.acceptBtn {
+      background-color: #4CAF50;
       color: white;
+      border: none;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: 0.3s;
     }
-    ul.friends-list button.remove-friend:hover {
+    button.acceptBtn:hover {
+      background-color: #388E3C;
+    }
+    button.rejectBtn {
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-left: 10px;
+    }
+    button.rejectBtn:hover {
       background-color: #cc0000;
+    }
+    #friendsList li span {
+      font-weight: bold;
     }
     #msg {
       text-align: center;
+      margin-top: 15px;
       font-weight: bold;
       min-height: 24px;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -119,111 +131,273 @@
       <button id="logoutBtn">Déconnexion</button>
     </div>
   </nav>
-
   <main>
-    <h2>Ajouter un ami</h2>
-    <input type="text" id="friendUsername" placeholder="Nom d'utilisateur de l'ami" maxlength="20" />
-    <button class="add-friend" id="addFriendBtn">Ajouter</button>
-    <ul class="friends-list" id="friendsList"></ul>
-    <p id="msg"></p>
+    <h2>Gérer mes amis</h2>
+    <div style="display:flex; margin-bottom: 10px;">
+      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur à ajouter" />
+      <button class="addFriendBtn" id="addFriendBtn">Ajouter</button>
+    </div>
+    <div id="msg"></div>
+
+    <h3>Demandes d’amis reçues</h3>
+    <ul id="friendRequestsList"></ul>
+
+    <h3>Mes amis</h3>
+    <ul id="friendsList"></ul>
   </main>
 
-  <script>
-    const sessionUser = localStorage.getItem('sessionUser');
-    if (!sessionUser) {
-      alert("Tu dois être connecté !");
-      window.location.href = "index.html";
-    }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      collection,
+      query,
+      where,
+      getDocs,
+      addDoc,
+      onSnapshot,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const btnProfile = document.getElementById('btnProfile');
-    const btnFriends = document.getElementById('btnFriends');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
+      authDomain: "chattfun-b892f.firebaseapp.com",
+      projectId: "chattfun-b892f",
+      // Ajouter ici d'autres clés si besoin (storage, messaging etc)
+    };
 
-    btnProfile.addEventListener('click', () => window.location.href = 'app.html');
-    btnFriends.addEventListener('click', () => window.location.href = 'friends.html');
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('sessionUser');
-      window.location.href = 'index.html';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const msg = document.getElementById('msg');
+    const friendUsernameInput = document.getElementById('friendUsername');
+    const addFriendBtn = document.getElementById('addFriendBtn');
+    const friendRequestsList = document.getElementById('friendRequestsList');
+    const friendsList = document.getElementById('friendsList');
+
+    let currentUserUID = null;
+    let currentUsername = null;
+
+    // Navigation boutons
+    document.getElementById('btnProfile').addEventListener('click', () => {
+      window.location.href = 'app.html';
+    });
+    document.getElementById('btnFriends').addEventListener('click', () => {
+      window.location.href = 'friends.html';
     });
 
-    const friendInput = document.getElementById('friendUsername');
-    const addFriendBtn = document.getElementById('addFriendBtn');
-    const friendsList = document.getElementById('friendsList');
-    const msg = document.getElementById('msg');
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        localStorage.removeItem('sessionUser');
+        window.location.href = 'index.html';
+      });
+    });
 
-    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
-
-    // Initialiser liste amis pour cet utilisateur
-    if (!friends[sessionUser]) {
-      friends[sessionUser] = [];
-    }
-
-    function renderFriends() {
-      friendsList.innerHTML = '';
-      if (friends[sessionUser].length === 0) {
-        friendsList.innerHTML = '<li>Aucun ami ajouté.</li>';
+    // Récupération utilisateur connecté Firebase (auth)
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        alert("Tu dois être connecté !");
+        window.location.href = 'index.html';
         return;
       }
-      friends[sessionUser].forEach((friend, index) => {
-        const li = document.createElement('li');
-        li.textContent = friend;
+      currentUserUID = user.uid;
 
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Supprimer';
-        removeBtn.classList.add('remove-friend');
-        removeBtn.addEventListener('click', () => {
-          friends[sessionUser].splice(index, 1);
-          localStorage.setItem('friends', JSON.stringify(friends));
-          renderFriends();
-          msg.style.color = 'lightgreen';
-          msg.textContent = `Ami "${friend}" supprimé.`;
-          setTimeout(() => msg.textContent = '', 3000);
+      // Récupérer username stocké en local ou depuis Firestore (ici localStorage)
+      currentUsername = localStorage.getItem('sessionUser') || null;
+      if (!currentUsername) {
+        alert("Utilisateur introuvable.");
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await loadFriendRequests();
+      await loadFriends();
+    });
+
+    // Ajouter une demande d'ami
+    addFriendBtn.addEventListener('click', async () => {
+      const friendUsername = friendUsernameInput.value.trim();
+      if (!friendUsername) {
+        showMsg("Merci de saisir un nom d'utilisateur.", 'red');
+        return;
+      }
+      if (friendUsername === currentUsername) {
+        showMsg("Tu ne peux pas t'ajouter toi-même.", 'red');
+        return;
+      }
+
+      // Chercher utilisateur cible dans users
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", friendUsername));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        showMsg("Utilisateur introuvable.", 'red');
+        return;
+      }
+      const targetDoc = querySnapshot.docs[0];
+      const targetUID = targetDoc.id;
+
+      // Vérifier si demande déjà envoyée
+      const requestsRef = collection(db, "friend_requests");
+      const existingRequestQ = query(requestsRef,
+        where("from", "==", currentUserUID),
+        where("to", "==", targetUID),
+        where("status", "==", "pending")
+      );
+      const existingRequestsSnapshot = await getDocs(existingRequestQ);
+      if (!existingRequestsSnapshot.empty) {
+        showMsg("Demande déjà envoyée.", 'orange');
+        return;
+      }
+
+      // Vérifier s'ils sont déjà amis
+      const currentUserDoc = await getDoc(doc(db, "users", currentUserUID));
+      const currentUserData = currentUserDoc.data();
+      if (currentUserData?.friends?.includes(targetUID)) {
+        showMsg("Vous êtes déjà amis.", 'orange');
+        return;
+      }
+
+      // Créer demande d'ami
+      await addDoc(collection(db, "friend_requests"), {
+        from: currentUserUID,
+        to: targetUID,
+        status: "pending",
+        timestamp: Date.now()
+      });
+      showMsg("Demande envoyée !", 'green');
+      friendUsernameInput.value = '';
+    });
+
+    // Charger demandes d'amis reçues (status = pending et to = currentUserUID)
+    async function loadFriendRequests() {
+      friendRequestsList.innerHTML = '';
+      const requestsRef = collection(db, "friend_requests");
+      const q = query(requestsRef, where("to", "==", currentUserUID), where("status", "==", "pending"));
+
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        friendRequestsList.innerHTML = '<li>Aucune demande en attente.</li>';
+        return;
+      }
+
+      for (const docSnap of snapshot.docs) {
+        const req = docSnap.data();
+        const fromUID = req.from;
+        const requestId = docSnap.id;
+
+        // Récupérer username de l'expéditeur
+        const fromUserDoc = await getDoc(doc(db, "users", fromUID));
+        const fromUserData = fromUserDoc.data();
+        const fromUsername = fromUserData?.username || "Utilisateur inconnu";
+
+        // Création élément DOM
+        const li = document.createElement('li');
+        li.textContent = fromUsername;
+
+        const btnAccept = document.createElement('button');
+        btnAccept.textContent = "Accepter";
+        btnAccept.classList.add('acceptBtn');
+        btnAccept.onclick = () => respondToRequest(requestId, true);
+
+        const btnReject = document.createElement('button');
+        btnReject.textContent = "Refuser";
+        btnReject.classList.add('rejectBtn');
+        btnReject.onclick = () => respondToRequest(requestId, false);
+
+        const btnsDiv = document.createElement('div');
+        btnsDiv.style.display = 'flex';
+        btnsDiv.style.gap = '10px';
+        btnsDiv.appendChild(btnAccept);
+        btnsDiv.appendChild(btnReject);
+
+        li.appendChild(btnsDiv);
+        friendRequestsList.appendChild(li);
+      }
+    }
+
+    // Accepter ou refuser demande
+    async function respondToRequest(requestId, accept) {
+      const reqRef = doc(db, "friend_requests", requestId);
+      if (accept) {
+        // Mettre à jour la demande
+        await updateDoc(reqRef, { status: "accepted" });
+
+        // Ajouter dans friends des 2 utilisateurs
+        const reqDoc = await getDoc(reqRef);
+        const reqData = reqDoc.data();
+
+        const fromUID = reqData.from;
+        const toUID = reqData.to;
+
+        const fromUserRef = doc(db, "users", fromUID);
+        const toUserRef = doc(db, "users", toUID);
+
+        await updateDoc(fromUserRef, {
+          friends: arrayUnion(toUID)
+        }).catch(async err => {
+          // si pas de champ friends, le créer
+          if (err.code === "not-found") {
+            await setDoc(fromUserRef, { friends: [toUID] }, { merge: true });
+          } else {
+            console.error(err);
+          }
         });
 
-        li.appendChild(removeBtn);
-        friendsList.appendChild(li);
-      });
+        await updateDoc(toUserRef, {
+          friends: arrayUnion(fromUID)
+        }).catch(async err => {
+          if (err.code === "not-found") {
+            await setDoc(toUserRef, { friends: [fromUID] }, { merge: true });
+          } else {
+            console.error(err);
+          }
+        });
+
+        showMsg("Demande acceptée.");
+      } else {
+        await updateDoc(reqRef, { status: "rejected" });
+        showMsg("Demande refusée.");
+      }
+      await loadFriendRequests();
+      await loadFriends();
     }
 
-    addFriendBtn.addEventListener('click', () => {
-      const newFriend = friendInput.value.trim();
-      msg.textContent = '';
+    // Charger liste amis
+    async function loadFriends() {
+      friendsList.innerHTML = '';
+      const userDoc = await getDoc(doc(db, "users", currentUserUID));
+      const userData = userDoc.data();
 
-      if (!newFriend) {
-        msg.style.color = 'red';
-        msg.textContent = "Entrez un nom d'utilisateur.";
-        return;
-      }
-      if (newFriend === sessionUser) {
-        msg.style.color = 'red';
-        msg.textContent = "Tu ne peux pas t'ajouter toi-même.";
-        return;
-      }
-      if (friends[sessionUser].includes(newFriend)) {
-        msg.style.color = 'red';
-        msg.textContent = "Cet ami est déjà dans ta liste.";
+      if (!userData?.friends || userData.friends.length === 0) {
+        friendsList.innerHTML = '<li>Tu n’as pas encore d’amis.</li>';
         return;
       }
 
-      // Optionnel: vérifier si l'ami existe dans profils
-      const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-      if (!allProfiles[newFriend]) {
-        msg.style.color = 'orange';
-        msg.textContent = "Cet utilisateur n'existe pas (localement).";
-        return;
+      for (const friendUID of userData.friends) {
+        const friendDoc = await getDoc(doc(db, "users", friendUID));
+        const friendData = friendDoc.data();
+
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${friendData?.username || 'Utilisateur inconnu'}</span>`;
+        friendsList.appendChild(li);
       }
+    }
 
-      friends[sessionUser].push(newFriend);
-      localStorage.setItem('friends', JSON.stringify(friends));
-      friendInput.value = '';
-      renderFriends();
-
-      msg.style.color = 'lightgreen';
-      msg.textContent = `Ami "${newFriend}" ajouté !`;
-      setTimeout(() => msg.textContent = '', 3000);
-    });
-
-    renderFriends();
+    // Message rapide
+    function showMsg(text, color = 'white') {
+      msg.style.color = color;
+      msg.textContent = text;
+      setTimeout(() => {
+        msg.textContent = '';
+      }, 4000);
+    }
   </script>
 </body>
 </html>
