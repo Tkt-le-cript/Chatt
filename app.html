@@ -5,6 +5,7 @@
   <title>ChattFun - Mon espace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* ... ton CSS inchangé ... */
     * {
       box-sizing: border-box;
     }
@@ -40,6 +41,7 @@
     nav button:hover {
       background-color: #ff1ac6;
     }
+    /* ... reste CSS inchangé ... */
     main {
       padding: 30px 20px;
       max-width: 700px;
@@ -69,8 +71,8 @@
       border: none;
       margin-bottom: 10px;
       font-size: 16px;
-      background-color: #fff;       /* champs en blanc */
-      color: #000;                  /* texte noir */
+      background-color: #fff;
+      color: #000;
       outline: none;
       transition: background-color 0.3s;
       box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
@@ -128,6 +130,8 @@
   <nav>
     <div class="logo">ChattFun</div>
     <div>
+      <button id="btnProfile">Profil</button>
+      <button id="btnFriends">Amis</button>
       <button id="logoutBtn">Déconnexion</button>
     </div>
   </nav>
@@ -278,6 +282,16 @@
           alert("Erreur lors de la suppression : " + error.message);
         }
       }
+    });
+
+    // Ajout gestion des boutons menu
+    document.getElementById('btnProfile').addEventListener('click', () => {
+      // On reste sur la page profil
+      window.location.href = 'app.html';
+    });
+
+    document.getElementById('btnFriends').addEventListener('click', () => {
+      window.location.href = 'friends.html';
     });
   </script>
 </body>
