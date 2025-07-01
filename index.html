@@ -5,7 +5,6 @@
   <title>ChattFun - Connexion / Inscription</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Reset simple */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -31,25 +30,18 @@
       font-weight: 700;
       margin-bottom: 20px;
       text-align: center;
-      letter-spacing: 1.2px;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
     }
     label {
       display: block;
       margin-bottom: 6px;
       font-weight: 600;
-      font-size: 14px;
     }
     input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 10px;
       margin-bottom: 15px;
       border-radius: 8px;
       border: none;
-      font-size: 16px;
-      outline: none;
-    }
-    input[type="email"], input[type="password"], input[type="text"] {
       background: #3a007a;
       color: white;
     }
@@ -58,17 +50,14 @@
     }
     button {
       width: 100%;
-      padding: 14px 0;
+      padding: 14px;
       border: none;
       border-radius: 8px;
       font-size: 18px;
       font-weight: 700;
-      color: #fff;
-      cursor: pointer;
-      margin-top: 10px;
       background: #7a3cff;
-      box-shadow: 0 4px 14px #b474ff;
-      transition: background 0.3s ease;
+      color: white;
+      cursor: pointer;
     }
     button:hover {
       background: #993cff;
@@ -76,51 +65,32 @@
     #switchMode {
       margin-top: 20px;
       text-align: center;
-      cursor: pointer;
       color: #b474ff;
+      cursor: pointer;
       font-weight: 600;
-      user-select: none;
       text-decoration: underline;
-    }
-    #errorMsg, #successMsg {
-      margin-top: 10px;
-      font-weight: 700;
-      text-align: center;
-      min-height: 24px;
     }
     #errorMsg {
       color: #ff6f6f;
+      font-weight: bold;
+      text-align: center;
     }
     #successMsg {
       color: #80ff9a;
-    }
-    #version-tag {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      background: rgba(0,0,0,0.5);
-      color: #eee;
-      padding: 5px 12px;
-      font-family: monospace;
-      font-size: 13px;
-      border-radius: 6px;
-      user-select: none;
-      z-index: 9999;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.1.7</div>
-
   <div id="container">
     <h1 id="formTitle">Connexion</h1>
     <form id="authForm">
-      <input type="text" id="username" placeholder="Nom d'utilisateur" required minlength="3" maxlength="20" />
+      <input type="text" id="username" placeholder="Nom d'utilisateur" required />
       <label for="email">Adresse email</label>
-      <input type="email" id="email" placeholder="exemple@mail.com" required />
+      <input type="email" id="email" required placeholder="exemple@mail.com" />
       <label for="password">Mot de passe</label>
-      <input type="password" id="password" placeholder="••••••••" required minlength="6" />
+      <input type="password" id="password" required placeholder="••••••••" />
       <button type="submit" id="submitBtn">Se connecter</button>
     </form>
     <div id="errorMsg"></div>
@@ -141,89 +111,68 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const form = document.getElementById('authForm');
-    const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const submitBtn = document.getElementById('submitBtn');
-    const switchMode = document.getElementById('switchMode');
-    const formTitle = document.getElementById('formTitle');
-    const errorMsg = document.getElementById('errorMsg');
-    const successMsg = document.getElementById('successMsg');
+    const form = document.getElementById("authForm");
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitBtn = document.getElementById("submitBtn");
+    const switchMode = document.getElementById("switchMode");
+    const formTitle = document.getElementById("formTitle");
+    const errorMsg = document.getElementById("errorMsg");
+    const successMsg = document.getElementById("successMsg");
 
     let isLoginMode = true;
 
-    switchMode.addEventListener('click', () => {
+    switchMode.addEventListener("click", () => {
       isLoginMode = !isLoginMode;
-      errorMsg.textContent = '';
-      successMsg.textContent = '';
-      if (isLoginMode) {
-        formTitle.textContent = 'Connexion';
-        submitBtn.textContent = 'Se connecter';
-        switchMode.textContent = "Pas encore inscrit ? Inscription";
-      } else {
-        formTitle.textContent = 'Inscription';
-        submitBtn.textContent = "S'inscrire";
-        switchMode.textContent = "Déjà un compte ? Connexion";
-      }
+      formTitle.textContent = isLoginMode ? "Connexion" : "Inscription";
+      submitBtn.textContent = isLoginMode ? "Se connecter" : "S'inscrire";
+      switchMode.textContent = isLoginMode ? "Pas encore inscrit ? Inscription" : "Déjà un compte ? Connexion";
+      errorMsg.textContent = "";
+      successMsg.textContent = "";
     });
 
-    form.addEventListener('submit', async e => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      errorMsg.textContent = '';
-      successMsg.textContent = '';
-
       const username = usernameInput.value.trim();
       const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
+      const password = passwordInput.value;
 
-      if (!username || username.length < 3) {
-        errorMsg.textContent = "Le nom d'utilisateur doit contenir au moins 3 caractères.";
-        return;
-      }
-      if (!email || !password) {
-        errorMsg.textContent = 'Tous les champs sont obligatoires.';
+      if (!username || !email || !password) {
+        errorMsg.textContent = "Tous les champs sont requis.";
         return;
       }
 
       try {
         if (isLoginMode) {
-          await signInWithEmailAndPassword(auth, email, password);
-          // Sauvegarder username et email dans localStorage
-          localStorage.setItem('sessionUser', username);
-          successMsg.textContent = 'Connexion réussie ! Redirection…';
-        } else {
-          // Lors de l'inscription, vérifier que le nom d'utilisateur n'est pas déjà pris localement
-          let profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
-          if (profiles[username]) {
-            errorMsg.textContent = "Ce nom d'utilisateur est déjà pris.";
+          const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
+          if (!profiles[username]) {
+            errorMsg.textContent = "Nom d'utilisateur introuvable.";
             return;
           }
+
+          await signInWithEmailAndPassword(auth, email, password);
+          localStorage.setItem("sessionUser", username);
+          successMsg.textContent = "Connexion réussie.";
+        } else {
+          const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
+          if (profiles[username]) {
+            errorMsg.textContent = "Nom d'utilisateur déjà pris.";
+            return;
+          }
+
           await createUserWithEmailAndPassword(auth, email, password);
-          // Créer profil vide localement
-          profiles[username] = { age: '', height: '', hairColor: '', bio: '' };
-          localStorage.setItem('profiles', JSON.stringify(profiles));
-          localStorage.setItem('sessionUser', username);
-          successMsg.textContent = 'Inscription réussie ! Redirection…';
+          profiles[username] = { age: "", height: "", hairColor: "", bio: "" };
+          localStorage.setItem("profiles", JSON.stringify(profiles));
+          localStorage.setItem("sessionUser", username);
+          successMsg.textContent = "Inscription réussie.";
         }
 
         setTimeout(() => {
-          window.location.href = 'app.html';
+          window.location.href = "app.html";
         }, 1500);
-      } catch (error) {
-        if (error.code === 'auth/user-not-found' && isLoginMode) {
-          errorMsg.textContent = "Utilisateur non trouvé. Essaie de t'inscrire.";
-        } else if (error.code === 'auth/email-already-in-use' && !isLoginMode) {
-          errorMsg.textContent = "Email déjà utilisé. Essaie de te connecter.";
-        } else if (error.code === 'auth/invalid-email') {
-          errorMsg.textContent = "Email invalide.";
-        } else if (error.code === 'auth/wrong-password') {
-          errorMsg.textContent = "Mot de passe incorrect.";
-        } else if (error.code === 'auth/weak-password') {
-          errorMsg.textContent = "Mot de passe trop faible (min 6 caractères).";
-        } else {
-          errorMsg.textContent = `Erreur : ${error.message}`;
-        }
+      } catch (err) {
+        errorMsg.textContent = "Erreur : " + err.message;
       }
     });
   </script>
