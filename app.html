@@ -5,6 +5,7 @@
   <title>ChattFun - Mon espace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -31,12 +32,20 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      transition: 0.3s;
       margin-left: 10px;
+    }
+    nav button:hover {
+      background-color: #ff1ac6;
     }
     main {
       padding: 30px 20px;
       max-width: 700px;
       margin: auto;
+    }
+    h2 {
+      text-align: center;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.5);
     }
     section {
       background: rgba(255, 255, 255, 0.1);
@@ -58,30 +67,34 @@
       margin-bottom: 10px;
       font-size: 16px;
     }
-    input[disabled] {
-      background-color: #ccc;
-      color: #444;
-    }
-    .save-profile, #deleteAccountBtn {
+    button.save-profile {
       width: 100%;
       padding: 12px;
       font-weight: bold;
       border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      margin-top: 10px;
-    }
-    .save-profile {
       background-color: #00c3ff;
+      border: none;
       color: white;
+      font-size: 18px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
-    .save-profile:hover {
+    button.save-profile:hover {
       background-color: #00a8dd;
     }
     #deleteAccountBtn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      font-weight: bold;
+      border-radius: 8px;
       background-color: #ff4444;
+      border: none;
       color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
     #deleteAccountBtn:hover {
       background-color: #cc0000;
@@ -93,6 +106,103 @@
       min-height: 24px;
     }
   </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, deleteUser, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
+      authDomain: "chattfun-b892f.firebaseapp.com",
+      projectId: "chattfun-b892f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    window.auth = auth;
+
+    const sessionUser = localStorage.getItem('sessionUser');
+    if (!sessionUser) {
+      alert("Tu dois être connecté !");
+      window.location.href = "index.html";
+    }
+
+    const ageInput = document.getElementById('age');
+    const heightInput = document.getElementById('height');
+    const hairColorInput = document.getElementById('hairColor');
+    const bioInput = document.getElementById('bio');
+    const msg = document.getElementById('msg');
+
+    const profileForm = document.getElementById('profileForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+    const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+    if (allProfiles[sessionUser]) {
+      const p = allProfiles[sessionUser];
+      ageInput.value = p.age || '';
+      heightInput.value = p.height || '';
+      hairColorInput.value = p.hairColor || '';
+      bioInput.value = p.bio || '';
+    }
+
+    let msgTimeout;
+
+    profileForm.addEventListener('submit', e => {
+      e.preventDefault();
+      clearTimeout(msgTimeout);
+
+      const age = parseInt(ageInput.value);
+      if (isNaN(age) || age < 13) {
+        msg.style.color = 'red';
+        msg.textContent = "Tu dois avoir au moins 13 ans.";
+        return;
+      }
+      const height = parseInt(heightInput.value) || '';
+      const hairColor = hairColorInput.value;
+      const bio = bioInput.value;
+
+      allProfiles[sessionUser] = { age, height, hairColor, bio };
+      localStorage.setItem('profiles', JSON.stringify(allProfiles));
+      msg.style.color = 'lightgreen';
+      msg.textContent = "Profil enregistré !";
+
+      msgTimeout = setTimeout(() => {
+        msg.textContent = '';
+      }, 3000);
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth).then(() => {
+        localStorage.removeItem('sessionUser');
+        window.location.href = 'index.html';
+      });
+    });
+
+    deleteAccountBtn.addEventListener('click', () => {
+      if (!confirm("Supprimer définitivement ce compte ?")) return;
+
+      const user = auth.currentUser;
+
+      if (user) {
+        deleteUser(user).then(() => {
+          // Supprimer données locales
+          const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
+          delete profiles[sessionUser];
+          localStorage.setItem("profiles", JSON.stringify(profiles));
+          localStorage.removeItem("sessionUser");
+
+          alert("Ton compte a été supprimé définitivement.");
+          window.location.href = "index.html";
+        }).catch((error) => {
+          console.error("Erreur suppression Firebase :", error);
+          alert("Erreur : " + error.message);
+        });
+      } else {
+        alert("Aucun utilisateur Firebase connecté.");
+      }
+    });
+  </script>
 </head>
 <body>
   <nav>
@@ -106,15 +216,10 @@
     <h2>Profil Utilisateur</h2>
     <section>
       <form id="profileForm">
-        <label>Nom d'utilisateur</label>
-        <input type="text" id="usernameDisplay" disabled />
-
         <label for="age">Âge</label>
         <input type="number" id="age" min="13" max="120" required />
-
         <label for="height">Taille (en cm)</label>
         <input type="number" id="height" min="50" max="250" />
-
         <label for="hairColor">Couleur de cheveux</label>
         <select id="hairColor" required>
           <option value="">-- Choisir --</option>
@@ -124,84 +229,13 @@
           <option value="Roux">Roux</option>
           <option value="Autre">Autre</option>
         </select>
-
         <label for="bio">À propos de toi</label>
         <textarea id="bio" rows="4" placeholder="Raconte quelque chose sur toi..."></textarea>
-
         <button type="submit" class="save-profile">Sauvegarder</button>
       </form>
       <button id="deleteAccountBtn">Supprimer mon compte</button>
       <p id="msg"></p>
     </section>
   </main>
-
-  <script>
-    const sessionUser = localStorage.getItem("sessionUser");
-    if (!sessionUser) {
-      alert("Tu dois être connecté !");
-      window.location.href = "index.html";
-    }
-
-    const ageInput = document.getElementById("age");
-    const heightInput = document.getElementById("height");
-    const hairColorInput = document.getElementById("hairColor");
-    const bioInput = document.getElementById("bio");
-    const msg = document.getElementById("msg");
-    const profileForm = document.getElementById("profileForm");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const deleteAccountBtn = document.getElementById("deleteAccountBtn");
-    const usernameDisplay = document.getElementById("usernameDisplay");
-
-    usernameDisplay.value = sessionUser;
-
-    const allProfiles = JSON.parse(localStorage.getItem("profiles") || "{}");
-    if (allProfiles[sessionUser]) {
-      const p = allProfiles[sessionUser];
-      ageInput.value = p.age || "";
-      heightInput.value = p.height || "";
-      hairColorInput.value = p.hairColor || "";
-      bioInput.value = p.bio || "";
-    }
-
-    profileForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const age = parseInt(ageInput.value);
-      if (isNaN(age) || age < 13) {
-        msg.style.color = "red";
-        msg.textContent = "Tu dois avoir au moins 13 ans.";
-        return;
-      }
-
-      const height = parseInt(heightInput.value) || "";
-      const hairColor = hairColorInput.value;
-      const bio = bioInput.value;
-
-      allProfiles[sessionUser] = { age, height, hairColor, bio };
-      localStorage.setItem("profiles", JSON.stringify(allProfiles));
-
-      msg.style.color = "lightgreen";
-      msg.textContent = "Profil enregistré !";
-      setTimeout(() => (msg.textContent = ""), 3000);
-    });
-
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("sessionUser");
-      window.location.href = "index.html";
-    });
-
-    deleteAccountBtn.addEventListener("click", () => {
-      if (confirm("Supprimer définitivement ce compte ?")) {
-        const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
-        delete profiles[sessionUser];
-        localStorage.setItem("profiles", JSON.stringify(profiles));
-
-        localStorage.removeItem("sessionUser");
-        localStorage.setItem("deletedUser_" + sessionUser, "true");
-
-        alert("Compte supprimé. Redirection vers l'accueil.");
-        window.location.href = "index.html";
-      }
-    });
-  </script>
 </body>
 </html>
