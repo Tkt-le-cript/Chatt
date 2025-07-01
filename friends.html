@@ -161,14 +161,14 @@
       getDocs,
       addDoc,
       onSnapshot,
-      deleteDoc
+      deleteDoc,
+      arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
       authDomain: "chattfun-b892f.firebaseapp.com",
       projectId: "chattfun-b892f",
-      // Ajouter ici d'autres clés si besoin (storage, messaging etc)
     };
 
     const app = initializeApp(firebaseConfig);
@@ -184,7 +184,6 @@
     let currentUserUID = null;
     let currentUsername = null;
 
-    // Navigation boutons
     document.getElementById('btnProfile').addEventListener('click', () => {
       window.location.href = 'app.html';
     });
@@ -199,7 +198,6 @@
       });
     });
 
-    // Récupération utilisateur connecté Firebase (auth)
     onAuthStateChanged(auth, async user => {
       if (!user) {
         alert("Tu dois être connecté !");
@@ -208,7 +206,6 @@
       }
       currentUserUID = user.uid;
 
-      // Récupérer username stocké en local ou depuis Firestore (ici localStorage)
       currentUsername = localStorage.getItem('sessionUser') || null;
       if (!currentUsername) {
         alert("Utilisateur introuvable.");
@@ -220,7 +217,6 @@
       await loadFriends();
     });
 
-    // Ajouter une demande d'ami
     addFriendBtn.addEventListener('click', async () => {
       const friendUsername = friendUsernameInput.value.trim();
       if (!friendUsername) {
@@ -232,7 +228,6 @@
         return;
       }
 
-      // Chercher utilisateur cible dans users
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("username", "==", friendUsername));
       const querySnapshot = await getDocs(q);
@@ -243,7 +238,6 @@
       const targetDoc = querySnapshot.docs[0];
       const targetUID = targetDoc.id;
 
-      // Vérifier si demande déjà envoyée
       const requestsRef = collection(db, "friend_requests");
       const existingRequestQ = query(requestsRef,
         where("from", "==", currentUserUID),
@@ -256,7 +250,6 @@
         return;
       }
 
-      // Vérifier s'ils sont déjà amis
       const currentUserDoc = await getDoc(doc(db, "users", currentUserUID));
       const currentUserData = currentUserDoc.data();
       if (currentUserData?.friends?.includes(targetUID)) {
@@ -264,7 +257,6 @@
         return;
       }
 
-      // Créer demande d'ami
       await addDoc(collection(db, "friend_requests"), {
         from: currentUserUID,
         to: targetUID,
@@ -275,7 +267,6 @@
       friendUsernameInput.value = '';
     });
 
-    // Charger demandes d'amis reçues (status = pending et to = currentUserUID)
     async function loadFriendRequests() {
       friendRequestsList.innerHTML = '';
       const requestsRef = collection(db, "friend_requests");
@@ -292,12 +283,10 @@
         const fromUID = req.from;
         const requestId = docSnap.id;
 
-        // Récupérer username de l'expéditeur
         const fromUserDoc = await getDoc(doc(db, "users", fromUID));
         const fromUserData = fromUserDoc.data();
         const fromUsername = fromUserData?.username || "Utilisateur inconnu";
 
-        // Création élément DOM
         const li = document.createElement('li');
         li.textContent = fromUsername;
 
@@ -322,14 +311,11 @@
       }
     }
 
-    // Accepter ou refuser demande
     async function respondToRequest(requestId, accept) {
       const reqRef = doc(db, "friend_requests", requestId);
       if (accept) {
-        // Mettre à jour la demande
         await updateDoc(reqRef, { status: "accepted" });
 
-        // Ajouter dans friends des 2 utilisateurs
         const reqDoc = await getDoc(reqRef);
         const reqData = reqDoc.data();
 
@@ -339,26 +325,29 @@
         const fromUserRef = doc(db, "users", fromUID);
         const toUserRef = doc(db, "users", toUID);
 
-        await updateDoc(fromUserRef, {
-          friends: arrayUnion(toUID)
-        }).catch(async err => {
-          // si pas de champ friends, le créer
+        try {
+          await updateDoc(fromUserRef, {
+            friends: arrayUnion(toUID)
+          });
+        } catch (err) {
           if (err.code === "not-found") {
             await setDoc(fromUserRef, { friends: [toUID] }, { merge: true });
           } else {
             console.error(err);
           }
-        });
+        }
 
-        await updateDoc(toUserRef, {
-          friends: arrayUnion(fromUID)
-        }).catch(async err => {
+        try {
+          await updateDoc(toUserRef, {
+            friends: arrayUnion(fromUID)
+          });
+        } catch (err) {
           if (err.code === "not-found") {
             await setDoc(toUserRef, { friends: [fromUID] }, { merge: true });
           } else {
             console.error(err);
           }
-        });
+        }
 
         showMsg("Demande acceptée.");
       } else {
@@ -369,7 +358,6 @@
       await loadFriends();
     }
 
-    // Charger liste amis
     async function loadFriends() {
       friendsList.innerHTML = '';
       const userDoc = await getDoc(doc(db, "users", currentUserUID));
@@ -390,14 +378,8 @@
       }
     }
 
-    // Message rapide
     function showMsg(text, color = 'white') {
       msg.style.color = color;
       msg.textContent = text;
       setTimeout(() => {
-        msg.textContent = '';
-      }, 4000);
-    }
-  </script>
-</body>
-</html>
+        msg.text
