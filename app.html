@@ -70,25 +70,37 @@
       margin-bottom: 10px;
       font-size: 16px;
     }
-    button.save-profile {
+    button.save-profile, button.delete-account {
       width: 100%;
       padding: 12px;
       font-weight: bold;
       border-radius: 8px;
-      background-color: #00c3ff;
       border: none;
       color: white;
       font-size: 18px;
       margin-top: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    button.save-profile {
+      background-color: #00c3ff;
     }
     button.save-profile:hover {
       background-color: #00a8dd;
+    }
+    button.delete-account {
+      background-color: #ff4d4d;
+    }
+    button.delete-account:hover {
+      background-color: #e60000;
     }
     #msg {
       text-align:center;
       margin-top:10px;
       font-weight: bold;
       min-height: 24px;
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
@@ -129,6 +141,9 @@
 
         <button type="submit" class="save-profile">Sauvegarder</button>
       </form>
+
+      <button class="delete-account" id="deleteAccountBtn">Supprimer mon compte</button>
+
       <p id="msg"></p>
     </section>
   </main>
@@ -147,9 +162,7 @@
     const usernameInput = document.getElementById('username');
     const msg = document.getElementById('msg');
     const profileForm = document.getElementById('profileForm');
-
-    // On stocke dans localStorage un objet "profiles" avec chaque profil utilisateur
-    // + un objet "usernameChangeDates" pour gérer la date de dernier changement du username
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
     const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
     const usernameChangeDates = JSON.parse(localStorage.getItem('usernameChangeDates') || '{}');
@@ -163,17 +176,15 @@
       bioInput.value = p.bio || '';
     }
 
-    // On affiche aussi le nom d'utilisateur courant (qui est la clé sessionUser)
     usernameInput.value = sessionUser;
 
     profileForm.addEventListener('submit', e => {
       e.preventDefault();
 
-      // Validation de l'âge
+      // Validation âge
       const age = parseInt(ageInput.value);
       if (isNaN(age) || age < 13) {
-        msg.style.color = 'red';
-        msg.textContent = "Tu dois avoir au moins 13 ans.";
+        showMessage("Tu dois avoir au moins 13 ans.", 'red');
         return;
       }
 
@@ -183,66 +194,90 @@
       const newUsername = usernameInput.value.trim();
 
       if (newUsername.length < 3 || newUsername.length > 20) {
-        msg.style.color = 'red';
-        msg.textContent = "Le nom d'utilisateur doit contenir entre 3 et 20 caractères.";
+        showMessage("Le nom d'utilisateur doit contenir entre 3 et 20 caractères.", 'red');
         return;
       }
 
-      // Vérifier si utilisateur change son nom
       if (newUsername !== sessionUser) {
-        // Vérifier délai 1 mois (30 jours)
         const lastChange = usernameChangeDates[sessionUser];
         const now = Date.now();
 
         if (lastChange && (now - lastChange) < 30 * 24 * 60 * 60 * 1000) {
           const daysLeft = Math.ceil((30 * 24 * 60 * 60 * 1000 - (now - lastChange)) / (24 * 60 * 60 * 1000));
-          msg.style.color = 'red';
-          msg.textContent = `Tu peux changer ton nom d'utilisateur une fois par mois. Réessaie dans ${daysLeft} jour(s).`;
+          showMessage(`Tu peux changer ton nom d'utilisateur une fois par mois. Réessaie dans ${daysLeft} jour(s).`, 'red');
           return;
         }
 
-        // Vérifier que le nouveau username n'existe pas déjà dans profiles (clé)
         if (allProfiles[newUsername]) {
-          msg.style.color = 'red';
-          msg.textContent = "Ce nom d'utilisateur est déjà pris. Choisis-en un autre.";
+          showMessage("Ce nom d'utilisateur est déjà pris. Choisis-en un autre.", 'red');
           return;
         }
 
-        // OK, changement autorisé — on doit transférer les données au nouveau username
+        // Transfert du profil sous nouveau username
         allProfiles[newUsername] = allProfiles[sessionUser] || {};
         delete allProfiles[sessionUser];
 
-        // Mettre à jour la date de changement
+        // Mise à jour date de changement
         usernameChangeDates[newUsername] = now;
-        // Supprimer l'ancienne date de changement
         delete usernameChangeDates[sessionUser];
 
-        // Mettre à jour sessionUser dans localStorage et variable
         localStorage.setItem('sessionUser', newUsername);
       }
 
-      // Mettre à jour les données du profil sous le nouveau nom (newUsername)
-      allProfiles[newUsername] = {
-        age,
-        height,
-        hairColor,
-        bio
-      };
+      allProfiles[newUsername] = { age, height, hairColor, bio };
 
-      // Sauvegarder dans localStorage
       localStorage.setItem('profiles', JSON.stringify(allProfiles));
       localStorage.setItem('usernameChangeDates', JSON.stringify(usernameChangeDates));
 
-      msg.style.color = 'lightgreen';
-      msg.textContent = "Profil enregistré !";
+      showMessage("Profil enregistré !", 'lightgreen');
 
-      // Mettre à jour usernameInput au cas où (pour que ce soit cohérent)
+      // Met à jour input username (au cas où)
       usernameInput.value = newUsername;
+
+      // Met à jour sessionUser variable pour la session
+      sessionUser = newUsername;
+
+      // Message disparaît après 3 secondes
+      setTimeout(() => {
+        msg.style.opacity = '0';
+      }, 3000);
+      msg.style.opacity = '1';
     });
 
-    // Bouton déconnexion
+    function showMessage(text, color) {
+      msg.style.color = color;
+      msg.textContent = text;
+      msg.style.opacity = '1';
+    }
+
+    // Déconnexion
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('sessionUser');
+      window.location.href = 'index.html';
+    });
+
+    // Suppression complète du compte
+    deleteAccountBtn.addEventListener('click', () => {
+      const confirmation = confirm("Es-tu sûr de vouloir supprimer définitivement ton compte ? Cette action est irréversible.");
+      if (!confirmation) return;
+
+      // Supprimer profil et date de changement
+      const currentUser = localStorage.getItem('sessionUser');
+      if (!currentUser) return;
+
+      const profiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+      const changeDates = JSON.parse(localStorage.getItem('usernameChangeDates') || '{}');
+
+      delete profiles[currentUser];
+      delete changeDates[currentUser];
+
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      localStorage.setItem('usernameChangeDates', JSON.stringify(changeDates));
+
+      localStorage.removeItem('sessionUser');
+
+      alert("Ton compte et toutes tes données ont été supprimés.");
+
       window.location.href = 'index.html';
     });
   </script>
