@@ -84,22 +84,15 @@
     button.save-profile:hover {
       background-color: #00a8dd;
     }
-    #version-tag {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 13px;
-      color: #fff;
-      z-index: 1000;
+    #msg {
+      text-align:center;
+      margin-top:10px;
+      font-weight: bold;
+      min-height: 24px;
     }
   </style>
 </head>
 <body>
-  <div id="version-tag">Version 0.2.3</div>
 
   <nav>
     <div class="logo">ChattFun</div>
@@ -112,6 +105,9 @@
     <h2>Profil Utilisateur</h2>
     <section>
       <form id="profileForm">
+        <label for="username">Nom d'utilisateur</label>
+        <input type="text" id="username" minlength="3" maxlength="20" required />
+
         <label for="age">Âge</label>
         <input type="number" id="age" min="13" max="120" required />
 
@@ -133,14 +129,11 @@
 
         <button type="submit" class="save-profile">Sauvegarder</button>
       </form>
-      <p id="msg" style="text-align:center; margin-top:10px; font-weight: bold;"></p>
+      <p id="msg"></p>
     </section>
   </main>
 
   <script>
-    const version = "0.2.3";
-    document.getElementById("version-tag").innerText = "Version " + version;
-
     const sessionUser = localStorage.getItem('sessionUser');
     if (!sessionUser) {
       alert("Tu dois être connecté !");
@@ -151,12 +144,17 @@
     const heightInput = document.getElementById('height');
     const hairColorInput = document.getElementById('hairColor');
     const bioInput = document.getElementById('bio');
+    const usernameInput = document.getElementById('username');
     const msg = document.getElementById('msg');
-
     const profileForm = document.getElementById('profileForm');
 
-    // Charger données
+    // On stocke dans localStorage un objet "profiles" avec chaque profil utilisateur
+    // + un objet "usernameChangeDates" pour gérer la date de dernier changement du username
+
     const allProfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+    const usernameChangeDates = JSON.parse(localStorage.getItem('usernameChangeDates') || '{}');
+
+    // Chargement des données utilisateur dans le formulaire
     if (allProfiles[sessionUser]) {
       const p = allProfiles[sessionUser];
       ageInput.value = p.age || '';
@@ -165,27 +163,85 @@
       bioInput.value = p.bio || '';
     }
 
+    // On affiche aussi le nom d'utilisateur courant (qui est la clé sessionUser)
+    usernameInput.value = sessionUser;
+
     profileForm.addEventListener('submit', e => {
       e.preventDefault();
+
+      // Validation de l'âge
       const age = parseInt(ageInput.value);
       if (isNaN(age) || age < 13) {
         msg.style.color = 'red';
         msg.textContent = "Tu dois avoir au moins 13 ans.";
         return;
       }
+
       const height = parseInt(heightInput.value) || '';
       const hairColor = hairColorInput.value;
       const bio = bioInput.value;
+      const newUsername = usernameInput.value.trim();
 
-      allProfiles[sessionUser] = { age, height, hairColor, bio };
+      if (newUsername.length < 3 || newUsername.length > 20) {
+        msg.style.color = 'red';
+        msg.textContent = "Le nom d'utilisateur doit contenir entre 3 et 20 caractères.";
+        return;
+      }
+
+      // Vérifier si utilisateur change son nom
+      if (newUsername !== sessionUser) {
+        // Vérifier délai 1 mois (30 jours)
+        const lastChange = usernameChangeDates[sessionUser];
+        const now = Date.now();
+
+        if (lastChange && (now - lastChange) < 30 * 24 * 60 * 60 * 1000) {
+          const daysLeft = Math.ceil((30 * 24 * 60 * 60 * 1000 - (now - lastChange)) / (24 * 60 * 60 * 1000));
+          msg.style.color = 'red';
+          msg.textContent = `Tu peux changer ton nom d'utilisateur une fois par mois. Réessaie dans ${daysLeft} jour(s).`;
+          return;
+        }
+
+        // Vérifier que le nouveau username n'existe pas déjà dans profiles (clé)
+        if (allProfiles[newUsername]) {
+          msg.style.color = 'red';
+          msg.textContent = "Ce nom d'utilisateur est déjà pris. Choisis-en un autre.";
+          return;
+        }
+
+        // OK, changement autorisé — on doit transférer les données au nouveau username
+        allProfiles[newUsername] = allProfiles[sessionUser] || {};
+        delete allProfiles[sessionUser];
+
+        // Mettre à jour la date de changement
+        usernameChangeDates[newUsername] = now;
+        // Supprimer l'ancienne date de changement
+        delete usernameChangeDates[sessionUser];
+
+        // Mettre à jour sessionUser dans localStorage et variable
+        localStorage.setItem('sessionUser', newUsername);
+      }
+
+      // Mettre à jour les données du profil sous le nouveau nom (newUsername)
+      allProfiles[newUsername] = {
+        age,
+        height,
+        hairColor,
+        bio
+      };
+
+      // Sauvegarder dans localStorage
       localStorage.setItem('profiles', JSON.stringify(allProfiles));
+      localStorage.setItem('usernameChangeDates', JSON.stringify(usernameChangeDates));
+
       msg.style.color = 'lightgreen';
       msg.textContent = "Profil enregistré !";
+
+      // Mettre à jour usernameInput au cas où (pour que ce soit cohérent)
+      usernameInput.value = newUsername;
     });
 
-    // Déconnexion
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', () => {
+    // Bouton déconnexion
+    document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('sessionUser');
       window.location.href = 'index.html';
     });
