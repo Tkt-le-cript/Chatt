@@ -1,180 +1,83 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>ChattFun - Connexion / Inscription</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capsule Temporelle</title>
   <style>
-    * {
-      box-sizing: border-box;
+    body {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: "Courier New", monospace;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
     }
-    #container {
-      background: rgba(30, 0, 60, 0.85);
-      border-radius: 12px;
-      padding: 30px 40px;
-      width: 320px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    .capsule {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
     }
     h1 {
-      font-weight: 700;
       margin-bottom: 20px;
-      text-align: center;
+      font-size: 2em;
+      text-transform: uppercase;
     }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
+    .hidden {
+      display: none;
     }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      background: #3a007a;
-      color: white;
-    }
-    input::placeholder {
-      color: #cfcfff;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: 700;
-      background: #7a3cff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #993cff;
-    }
-    #switchMode {
+    .countdown {
       margin-top: 20px;
-      text-align: center;
-      color: #b474ff;
-      cursor: pointer;
-      font-weight: 600;
-      text-decoration: underline;
-    }
-    #errorMsg {
-      color: #ff6f6f;
-      font-weight: bold;
-      text-align: center;
-    }
-    #successMsg {
-      color: #80ff9a;
-      font-weight: bold;
-      text-align: center;
+      font-size: 1.2em;
+      color: #ffcc00;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <h1 id="formTitle">Connexion</h1>
-    <form id="authForm">
-      <input type="text" id="username" placeholder="Nom d'utilisateur" required />
-      <label for="email">Adresse email</label>
-      <input type="email" id="email" required placeholder="exemple@mail.com" />
-      <label for="password">Mot de passe</label>
-      <input type="password" id="password" required placeholder="••••••••" />
-      <button type="submit" id="submitBtn">Se connecter</button>
-    </form>
-    <div id="errorMsg"></div>
-    <div id="successMsg"></div>
-    <div id="switchMode">Pas encore inscrit ? Inscription</div>
+  <div class="capsule">
+    <h1>Capsule Temporelle</h1>
+    <p id="message">Le contenu est scellé... 🕰️</p>
+    <div id="content" class="hidden">
+      <h2>Contenu Débloqué 🎉</h2>
+      <p>Ceci est le message du passé. Bonjour l’an 3042 !</p>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Time_capsule_1999.jpg/320px-Time_capsule_1999.jpg" alt="Capsule" width="200">
+    </div>
+    <div class="countdown" id="countdown"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <script>
+    // Définition de la date de déblocage -> 1er janvier 3042
+    const unlockDate = new Date("3042-01-01T00:00:00");
+    const message = document.getElementById("message");
+    const content = document.getElementById("content");
+    const countdown = document.getElementById("countdown");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAGbpCVH0fsjscNA11uxYh98yXeL5KN-uM",
-      authDomain: "chattfun-b892f.firebaseapp.com",
-      projectId: "chattfun-b892f",
-    };
+    function updateCapsule() {
+      const now = new Date();
+      const diff = unlockDate - now;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+      if (diff <= 0) {
+        message.style.display = "none";
+        content.classList.remove("hidden");
+        countdown.textContent = "La capsule est ouverte 🚀";
+      } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const years = Math.floor(days / 365);
+        const remainingDays = days % 365;
 
-    const form = document.getElementById("authForm");
-    const usernameInput = document.getElementById("username");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const submitBtn = document.getElementById("submitBtn");
-    const switchMode = document.getElementById("switchMode");
-    const formTitle = document.getElementById("formTitle");
-    const errorMsg = document.getElementById("errorMsg");
-    const successMsg = document.getElementById("successMsg");
-
-    let isLoginMode = true;
-
-    switchMode.addEventListener("click", () => {
-      isLoginMode = !isLoginMode;
-      formTitle.textContent = isLoginMode ? "Connexion" : "Inscription";
-      submitBtn.textContent = isLoginMode ? "Se connecter" : "S'inscrire";
-      switchMode.textContent = isLoginMode ? "Pas encore inscrit ? Inscription" : "Déjà un compte ? Connexion";
-      errorMsg.textContent = "";
-      successMsg.textContent = "";
-    });
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = usernameInput.value.trim();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!username || !email || !password) {
-        errorMsg.textContent = "Tous les champs sont requis.";
-        return;
+        countdown.textContent = 
+          `Ouverture dans environ ${years} ans et ${remainingDays} jours`;
       }
+    }
 
-      try {
-        if (isLoginMode) {
-          const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
-          if (!profiles[username]) {
-            errorMsg.textContent = "Nom d'utilisateur introuvable.";
-            return;
-          }
-
-          await signInWithEmailAndPassword(auth, email, password);
-          localStorage.setItem("sessionUser", username);
-          successMsg.textContent = "Connexion réussie.";
-        } else {
-          const profiles = JSON.parse(localStorage.getItem("profiles") || "{}");
-          if (profiles[username]) {
-            errorMsg.textContent = "Nom d'utilisateur déjà pris.";
-            return;
-          }
-
-          await createUserWithEmailAndPassword(auth, email, password);
-          profiles[username] = { age: "", height: "", hairColor: "", bio: "" };
-          localStorage.setItem("profiles", JSON.stringify(profiles));
-          localStorage.setItem("sessionUser", username);
-          successMsg.textContent = "Inscription réussie.";
-        }
-
-        setTimeout(() => {
-          window.location.href = "app.html";
-        }, 1500);
-      } catch (err) {
-        errorMsg.textContent = "Erreur : " + err.message;
-      }
-    });
+    setInterval(updateCapsule, 1000);
+    updateCapsule();
   </script>
 </body>
 </html>
