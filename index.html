@@ -3,81 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Capsule Temporelle</title>
+  <title>Carte postale de 3042</title>
   <style>
     body {
       margin: 0;
       padding: 0;
       font-family: "Courier New", monospace;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
       color: white;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       text-align: center;
     }
-    .capsule {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 30px;
+    .card {
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
       border-radius: 15px;
-      max-width: 600px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+      max-width: 800px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
     }
     h1 {
-      margin-bottom: 20px;
-      font-size: 2em;
-      text-transform: uppercase;
+      font-size: 2.5em;
+      margin-bottom: 15px;
     }
-    .hidden {
-      display: none;
-    }
-    .countdown {
-      margin-top: 20px;
+    p {
       font-size: 1.2em;
-      color: #ffcc00;
+      margin-bottom: 20px;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
-  <div class="capsule">
-    <h1>Capsule Temporelle</h1>
-    <p id="message">Le contenu est scellé... 🕰️</p>
-    <div id="content" class="hidden">
-      <h2>Contenu Débloqué 🎉</h2>
-      <p>Ceci est le message du passé. Bonjour l’an 3042 !</p>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Time_capsule_1999.jpg/320px-Time_capsule_1999.jpg" alt="Capsule" width="200">
-    </div>
-    <div class="countdown" id="countdown"></div>
+  <div class="card">
+    <h1>Carte postale de l’an 3042</h1>
+    <p>Bienvenue voyageur temporel ✨  
+    Voici un message du futur, envoyé depuis l’an 3042.</p>
+    
+    <!-- Ici tu mettras tes images futuristes -->
+    <img src="IMAGE1.png" alt="Ville du futur">
+    <img src="IMAGE2.png" alt="Paysage du futur">
+    
+    <p>Que reste-t-il de notre monde en 3042 ? 🌍</p>
   </div>
-
-  <script>
-    // Définition de la date de déblocage -> 1er janvier 3042
-    const unlockDate = new Date("3042-01-01T00:00:00");
-    const message = document.getElementById("message");
-    const content = document.getElementById("content");
-    const countdown = document.getElementById("countdown");
-
-    function updateCapsule() {
-      const now = new Date();
-      const diff = unlockDate - now;
-
-      if (diff <= 0) {
-        message.style.display = "none";
-        content.classList.remove("hidden");
-        countdown.textContent = "La capsule est ouverte 🚀";
-      } else {
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const years = Math.floor(days / 365);
-        const remainingDays = days % 365;
-
-        countdown.textContent = 
-          `Ouverture dans environ ${years} ans et ${remainingDays} jours`;
-      }
-    }
-
-    setInterval(updateCapsule, 1000);
-    updateCapsule();
-  </script>
 </body>
 </html>
